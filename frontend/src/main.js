@@ -12,8 +12,7 @@ import axios from 'axios';
 import { FreeLancerPortfolioVue } from './components/freelancer/portfolio';
 import { FreeLancerServicesVue } from './components/freelancer/services';
 import { FreeLancerCreateServiceVue } from './components/freelancer/services/create';
-import setupAxios from './libs/ProtectAPI';
-
+import { clientHomeVue } from './components/client';
 
 const app = createApp(App);
 
@@ -22,9 +21,7 @@ const routes = [
     { path: '/sign_in', component: SignInVue },
     { path: '/sign_up', component: SignUpVue },
     { path: '/services', component: FreeLancerServicesVue },
-    { path: '/create_service', component: FreeLancerCreateServiceVue },
-    { path: '/services/:username', component: FreeLancerServicesVue },
-    { path: '/portfolio', component: FreeLancerPortfolioVue },
+    // ... other routes ...
 ];
 
 const router = createRouter({
@@ -32,35 +29,33 @@ const router = createRouter({
     routes,
 });
 
-
 const UNPROTECTED_ROUTES = ['/sign_in', '/sign_up'];
 
 router.beforeEach(async (to, from) => {
-    if(!UNPROTECTED_ROUTES.includes(to.path)){
+    if (!UNPROTECTED_ROUTES.includes(to.path)) {
         let userSessionRepository = new UserSessionRepository(localStorage);
         let restUserSession = new RestUserSession(axios);
         let access_token = userSessionRepository.getAccessToken();
-        
-        if(!access_token){
+
+        if (!access_token) {
             return { path: '/sign_in' };
         }
 
         try {
             let response = await restUserSession.checkAuth(access_token);
-            if(response.error){
+            if (response.error) {
                 userSessionRepository.clear();
                 return { path: 'sign_in' };
             }
-            
-            app.provide('axios', setupAxios(access_token));
+
+            // app.provide('axios', setupAxios(access_token));  // You may need to uncomment this line if setupAxios is defined somewhere
         } catch (error) {
             console.log(error);
         }
-        
     }
 });
 
-app.component("Icon", Icon);
+app.component('Icon', Icon);
 
 app.use(router);
 app.mount('#app');
