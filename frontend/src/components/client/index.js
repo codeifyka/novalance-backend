@@ -1,3 +1,3 @@
-import clientHomeVue from './ClientHome.vue';
+import ClientHomeVue from './ClientHome.vue';
 
-export { clientHomeVue };
+export { ClientHomeVue };

@@ -1,10 +1,11 @@
 import { FreeLancerHomeVue } from "@/components/freelancer/home";
 import UserSessionRepository from "@/libs/UserSessionRepository";
 import { defineComponent, onMounted, ref } from "vue";
+import { clientHomeVue } from '@/components/client/home';
 
 export default defineComponent({
     name: 'HomeVue',
-    components: { FreeLancerHomeVue },
+    components: { FreeLancerHomeVue ,clientHomeVue},
     props: {},
     setup() {
         let account_type = ref(null);
