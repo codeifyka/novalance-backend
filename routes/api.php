@@ -51,6 +51,7 @@ Route::group(['prefix' => 'services'], function () {
 Route::group(['prefix' => 'projects'], function () {
     Route::post('upload_images',[FilesUploadController::class, 'uploadServicesImages']);
     Route::post('create',[ProjectsController::class, 'create']);
+    Route::get('{id}',[ProjectsController::class, 'getById']);
 });
 
 Route::group([

@@ -30,6 +30,35 @@ class ProjectsController extends Controller
         ]);
     }
     
+    public function getById(Request $request)
+    {
+        $project_id = $request->id;
+
+        $projects = DB::table('projects')->select('id','title','description')->where('id','=',$project_id)->get();
+        
+        foreach($projects as $project){
+            $images = DB::table('projects_images')->select('*')->where('project_id','=',$project->id)->get();
+            $arr = [];
+            foreach($images as $img){
+                array_push($arr, [
+                    "id" => $img->id,
+                    "url" => asset('storage/'.$img->path),
+                ]);
+            }
+            $project->images = $arr;
+        }
+
+        if(count($projects) == 0){
+            return response()->json([
+                "data" => null,
+            ]);
+        }
+
+        return response()->json([
+            "data" => $projects[0],
+        ]);
+    }
+
     public function getAll(Request $request)
     {
         $username = request('username');

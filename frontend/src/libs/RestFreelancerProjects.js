@@ -10,6 +10,10 @@ export default class RestFreelancerProjects {
         return this.axiosInstance.get(`/api/user/${username}/projects`).then(response => response.data);
     }
 
+    async getById(project_id){
+        return this.axiosInstance.get(`/api/projects/${project_id}`).then(response => response.data);
+    }
+
     async uploadImages(files){
         let formData = new FormData();
 
