@@ -20,6 +20,7 @@ import { FreeLancerCreateProjectVue } from './components/freelancer/portfolio/cr
 import { ProfileVue } from './components/client/profile'
 import { FreeLancerServicePreviewVue } from './components/freelancer/services/preview';
 import { ClientServicesVue } from './components/client/services'
+import { FreeLancerProjectPreviewVue } from './components/freelancer/portfolio/preview';
 
 
 const app = createApp(App);
@@ -35,6 +36,7 @@ const routes = [
     { path: '/portfolio', component: FreeLancerPortfolioVue },
     { path: '/create_project', component: FreeLancerCreateProjectVue },
     { path: '/portfolio/:username', component: FreeLancerPortfolioVue },
+    { path: '/project/:id', component: FreeLancerProjectPreviewVue },
     { path: '/create_job', component: ClientCreateJobVue },
     { path: '/client/profile', component: ProfileVue },
     { path: '/our_services', component: ClientServicesVue },
