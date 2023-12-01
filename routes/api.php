@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\FilesUploadController;
+use App\Http\Controllers\JobPostController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ServicesController;
 use Illuminate\Http\Request;
@@ -53,6 +54,11 @@ Route::group(['prefix' => 'projects'], function () {
     Route::post('create',[ProjectsController::class, 'create']);
     Route::get('{id}',[ProjectsController::class, 'getById']);
 });
+
+Route::resource('job',JobPostController::class);
+
+// I used this out of job resource temporarily.. while fixing a problem I'll remove it
+Route::post('job/store',[JobPostController::class,'store']);
 
 Route::group([
 

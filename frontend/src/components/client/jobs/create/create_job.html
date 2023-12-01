@@ -16,33 +16,33 @@
         <div class="w-3/5  mt-40 ">
             <div class="mb-5">
                 <h1 class="font-semibold text-2xl mb-3">Job Title:</h1>
-                <input type="text" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5 outline-none placeholder:text-slate-900 placeholder:font-normal placeholder:text-base" placeholder="Job Title ...">
+                <input v-model="title" type="text" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5 outline-none placeholder:text-slate-900 placeholder:font-normal placeholder:text-base" placeholder="Job Title ...">
             </div>
             <div class="mb-5">
-                <h1 class="font-semibold text-2xl mb-3">Job Description:</h1>
-                <textarea name="" id="" cols="78" rows="8" class="p-2 bg-purple-200 outline-none rounded-lg"></textarea>
+                <h1  class="font-semibold text-2xl mb-3">Job Description:</h1>
+                <textarea v-model="description" name="" id="" cols="78" rows="8" class="p-2 bg-purple-200 outline-none rounded-lg"></textarea>
             </div>
             <div class="mb-5">
                 <h1 class="font-semibold text-2xl mb-3 rounded-lg">Select skills for your job:</h1>
-                <select name="" id="" class="bg-purple-200 py-2 px-5 w-4/5 outline-none focus:border-none rounded-lg">
+                <select name="" id="" @click="handleSkillsChange" v-model="skills" class="bg-purple-200 py-2 px-5 w-4/5 outline-none focus:border-none rounded-lg">
                     <option value="" selected>All skills</option>
-                    <option value="">Web Develepment</option>
-                    <option value="">Design</option>
+                    <option value="Web Develepment">Web Develepment</option>
+                    <option value="Design">Design</option>
                 </select>
             </div>
             <div class="mb-5">
                 <h1 class="font-semibold text-2xl mb-3">Consider the size of your job:</h1>
                 <div class="w-3/5 flex justify-between ml-5">
                     <div class="flex">
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedSize" name="size" type="radio" value="Small" id="" >
                         <h1 class="ml-2">Small</h1>
                     </div>
                     <div class="flex">     
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedSize" name="size" type="radio" value="Mediem" id="" >
                         <h1 class="ml-2">Mediem</h1>
                     </div>
                     <div class="flex">
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedSize" name="size" type="radio" value="Large" id="" >
                         <h1 class="ml-2">Large</h1>
                     </div>
                 </div>
@@ -51,15 +51,15 @@
                 <h1 class="font-semibold text-2xl mb-3">What level of experience will it need?</h1>
                 <div class="w-3/5 flex justify-between ml-5">
                     <div class="flex">
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedLevel" name="level" value="Beginner" type="radio" id="" >
                         <h1 class="ml-2">Beginner</h1>
                     </div>
                     <div class="flex">     
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedLevel" name="level" value="Intermidiate" type="radio" id="" >
                         <h1 class="ml-2">Intermidiate</h1>
                     </div>
                     <div class="flex">
-                        <input type="radio" name="" id="" >
+                        <input v-model="selectedLevel" name="level" value="Expert" type="radio" id="" >
                         <h1 class="ml-2">Expert</h1>
                     </div>
                 </div>
@@ -68,19 +68,19 @@
                 <h1 class="font-semibold text-2xl mb-3">Project budget</h1>
                 <div class="w-4/5 flex justify-between items-center">
                     <h1 class="font-meduim text-lg ml-5"> Maximum project budget (DZ)</h1>
-                    <input type="number" name="" id="" placeholder="0" class="rounded-2xl px-2 py-1 bg-transparent border-2 border-slate-800 placeholder:float-right placeholder:mr-3">
+                    <input v-model="budjet" type="number" name="" id="" placeholder="0" class="rounded-2xl px-2 py-1 bg-transparent border-2 border-slate-800 placeholder:float-right placeholder:mr-3">
                 </div>
             </div>
             <div class="mb-5">
                 <h1 class="font-semibold text-2xl mb-3">Expected delivery time (Days)</h1>
-                <input type="text" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5 outline-none placeholder:text-slate-900 placeholder:font-normal placeholder:text-base" placeholder="days ...">
+                <input v-model="time" type="text" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5 outline-none placeholder:text-slate-900 placeholder:font-normal placeholder:text-base" placeholder="days ...">
             </div>
             <div class="mb-5">
                 <h1 class="font-semibold text-2xl mb-3">Illustrative files </h1>
-                <input type="file" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5">
+                <input  type="file" name="" id="" class="bg-purple-200 rounded-lg py-2 px-5 w-4/5">
             </div>
             <div class="flex justify-end w-4/5 mb-5">
-                <button class="px-10 py-2 bg-regal-purple cursor-pointer border-none focus:ring-2 focus:ring-regal-purple rounded-xl text-white hover:opacity-90">Post a job</button>
+                <button @click="onSubmit" class="px-10 py-2 bg-regal-purple cursor-pointer border-none focus:ring-2 focus:ring-regal-purple rounded-xl text-white hover:opacity-90">Post a job</button>
             </div>
         </div>
     </main>

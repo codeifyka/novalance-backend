@@ -17,5 +17,6 @@ class JobPost extends Model
         'expected_delivery_time',
         'budjet',
         'illustrative_files',
+        'category_id'
     ];
 }

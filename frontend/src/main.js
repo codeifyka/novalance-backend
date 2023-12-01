@@ -23,6 +23,7 @@ import { ClientServicesVue } from './components/client/services'
 import { FreeLancerProjectPreviewVue } from './components/freelancer/portfolio/preview';
 import { ServiceVue } from '@/components/childcomponent/service';
 import { ClientSingleJobPostPreviewVue } from '@/components/client/jobs/preview';
+import { ClientMyjobsVue } from '@/components/client/jobs/my_jobs';
 
 
 const app = createApp(App);
@@ -43,6 +44,7 @@ const routes = [
     { path: '/client/profile', component: ProfileVue },
     { path: '/our_services', component: ClientServicesVue },
     { path: '/job_post_preview', component: ClientSingleJobPostPreviewVue },
+    { path: '/my_jobs', component: ClientMyjobsVue },
 
 ];
 

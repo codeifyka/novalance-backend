@@ -1,0 +1,17 @@
+<div class="w-full  bg-purple-50">
+    <ClientHeaderVue />
+    <main class=" w-full flex justify-around">
+        <div class="w-3/5 mt-20 flex flex-col  px-10">
+            <h1 class="text-2xl font-bold text-regal-purple text-start mt-10">My Jobs</h1>
+                <JobPostVue  v-for="job in Jobs" :key="job.id" :job="job"/>
+        </div>
+        <div class="w-1/5  mt-40 ">
+        
+            <div class="w-11/12 flex flex-col items-center my-4">
+              
+            </div>
+        </div>
+    </main>
+    <h1 class="font-bold opacity-50 text-center pb-10 text-lg">© 2023 Novalance. All rights reserved.</h1>
+    <!-- <ClientFooterVue /> -->
+</div>
