@@ -25,22 +25,9 @@ export default {
         console.error('An error occurred:', error);
       }
     };
-    onMounted(async () => {
-      try {
-        const response = await restClientJobs.getAll();
-
-        if (response.data) {
-          Jobs.value = response.data;
-          console.log(response.data)
-        } else {
-          console.log(response);
-        }
-      } catch (error) {
-        console.error('An error occurred:', error);
-      }
-    });
+    onMounted(fetchData);
     return {
-      Jobs,fetchData
+      Jobs
     };
   },
 };

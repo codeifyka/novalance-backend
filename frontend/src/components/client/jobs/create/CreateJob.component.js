@@ -17,10 +17,7 @@ export default {
     const time = ref('')
     const files = ref('file.pdf')
     let toastManager = inject("toastManager");
-    function handleSkillsChange(  ) {
-      // This method is triggered when the selected value changes
-      console.log('Selected Skill:', this.skills);
-    }
+
     let onSubmit = async() =>{
       console.log(skills.value)
       let restClientJobs = new RestClientJobs(axios)
