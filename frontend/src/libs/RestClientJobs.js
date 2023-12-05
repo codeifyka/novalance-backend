@@ -12,14 +12,14 @@ export default class RestClientJobs{
     }
 
     async create(job){
-        return this.axiosInstance.post('/api/job/store',job).then(Response => Response.data)
+        return this.axiosInstance.post('/api/job',job).then(Response => Response.data)
     }
 
     async update(id){
-        return this.axiosInstance.post(`/api/job/update/${id}`).then(Response => Response.data)
+        return this.axiosInstance.put(`/api/job/${id}`).then(Response => Response.data)
     }
 
     async delete(id){
-        return this.axiosInstance.post(`/api/job/delete/${id}`).then(Response => Response.data)
+        return this.axiosInstance.delete(`/api/job/${id}`).then(Response => Response.data)
     }
 }

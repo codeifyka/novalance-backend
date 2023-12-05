@@ -55,10 +55,7 @@ Route::group(['prefix' => 'projects'], function () {
     Route::get('{id}',[ProjectsController::class, 'getById']);
 });
 
-Route::resource('job',JobPostController::class);
-
-// I used this out of job resource temporarily.. while fixing a problem I'll remove it
-Route::post('job/store',[JobPostController::class,'store']);
+Route::Resource('job',JobPostController::class);
 
 Route::group([
 

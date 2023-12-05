@@ -10,7 +10,10 @@ export default {
     const axios = inject('axios');
     let Jobs = ref([])
     let restClientJobs = new RestClientJobs(axios)
-
+    const colors = ref({
+      'text':'text-regal-brown',
+      'background':"bg-white",
+    })
     const fetchData = async () => {
       try {
         const response = await restClientJobs.getAll();
@@ -25,9 +28,13 @@ export default {
         console.error('An error occurred:', error);
       }
     };
+    function removeJobCard(jobId) {
+      // Find and remove the job from the json
+      Jobs.value = Jobs.value.filter(job => job.id !== jobId);
+    }
     onMounted(fetchData);
     return {
-      Jobs
+      Jobs ,colors,removeJobCard
     };
   },
 };
