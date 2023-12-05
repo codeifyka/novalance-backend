@@ -1,5 +1,10 @@
 export default {
-    setup(){
-        return { }
+    props: {
+        target: String,
+    },
+    setup(props){
+        return {
+            target: props.target
+        }
     }
 }

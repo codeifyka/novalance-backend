@@ -8,21 +8,21 @@ export default {
     components: { FreeLancerHeaderVue, SliderVue },
     setup(){
         let route = useRoute();
-        let services = ref([]);
+        let service = ref({ title: 'Service title', description: 'Description...', category: "Category", images :[], rate: 4, price: 300 });
         
         const axios = inject('axios');
         const restFreelancerServices = new RestFreelancerServices(axios);
 
         onMounted(async () => {
-            let response = await restFreelancerServices.getAll(route.params.username);
+            let response = await restFreelancerServices.getById(route.params.id);
             console.log(response);
             if(response.data){
-                services.value = response.data;
+                service.value = response.data;
             }
         });
 
         return { 
-            services
+            service
         };
     }
 }

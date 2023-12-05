@@ -1,15 +1,15 @@
 <div class="w-full flex items-center justify-between bg-purple-50/70 rounded-b-3xl shadow-md px-8 py-4">
-    <a href="/" class="text-purple-900 text-xl font-bold">NovaLance</a>
+    <a href="/" class="text-purple-900 text-base font-bold uppercase">NovaLance</a>
     <div class="flex items-center">
-        <a href="/services" class="text-purple-800 text-sm mx-4 font-semibold flex items-center">
+        <a href="/services" :class="'hover:text-purple-600 text-sm mx-4 font-semibold flex items-center '+(target == 'services' ? 'text-purple-600 font-bold' : 'text-purple-800')" >
             <Icon icon="icons8:services" class="text-lg" />
             <div class="ml-1">MY SERVICES</div>
         </a>
-        <a href="/portfolio" class="text-purple-800 text-sm mx-4 font-semibold flex items-center">
+        <a href="/portfolio" :class="'hover:text-purple-600 text-sm mx-4 font-semibold flex items-center '+(target == 'portfolio' ? 'text-purple-600 font-bold' : 'text-purple-800')">
             <Icon icon="bytesize:portfolio" class="text-lg" />
             <div class="ml-1">MY PORTFOLIO</div>
         </a>
-        <a href="/profile" class="text-purple-800 text-sm mx-4 font-semibold flex items-center">
+        <a href="/profile" :class="'hover:text-purple-600 text-sm mx-4 font-semibold flex items-center '+(target == 'profile' ? 'text-purple-600 font-bold' : 'text-purple-800')">
             <Icon icon="iconoir:profile-circle" class="text-lg" />
             <div class="ml-1">MY PROFILE</div>
         </a>

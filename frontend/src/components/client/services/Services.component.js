@@ -7,48 +7,54 @@ export default {
   setup() {   
     
     let services= ref([
-              {
-                id : 1 , 
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              } ,
-              {
-                id : 2 ,
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              },
-              {
-                id : 3 ,
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              },
-              {
-                id : 4 ,
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              },
-              {
-                id : 5,
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              },
-              {
-                id : 6 ,
-                title : "title",
-                category : "category" ,
-                price : 200 , 
-                rate : 3
-              }
+      {
+        id : 1 , 
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      } ,
+      {
+        id : 2 ,
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      },
+      {
+        id : 3 ,
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      },
+      {
+        id : 4 ,
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      },
+      {
+        id : 5,
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      },
+      {
+        id : 6 ,
+        title : "title",
+        category : "category" ,
+        price : 200 , 
+        rate : 3,
+        images: []
+      }
       ])
     return {
     services , 

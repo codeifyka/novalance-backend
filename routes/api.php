@@ -6,6 +6,7 @@ use App\Http\Controllers\FilesUploadController;
 use App\Http\Controllers\JobPostController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,8 @@ Route::group([
     'middleware' => 'auth:sanctum',
     'prefix' => 'user'
 ], function () {
+    Route::get('/',[UserController::class, 'getInfo']);
+    Route::post('/',[UserController::class, 'updateInfo']);
     Route::get('/services',[ServicesController::class, 'getSelfAll']);
     Route::get('/projects',[ProjectsController::class, 'getSelfAll']);
     Route::get('/{username}/services',[ServicesController::class, 'getAll']);
@@ -47,6 +50,8 @@ Route::get('/categories',[CategoriesController::class, 'getAll']);
 Route::group(['prefix' => 'services'], function () {
     Route::post('upload_images',[FilesUploadController::class, 'uploadServicesImages']);
     Route::post('create',[ServicesController::class, 'create']);
+    Route::get('{id}',[ServicesController::class, 'getById']);
+
 });
 
 Route::group(['prefix' => 'projects'], function () {

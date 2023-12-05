@@ -1,6 +1,6 @@
 <div class="w-full h-screen overflow-auto flex flex-col items-center bg-purple-50 freelancer-background">
     <div class="w-11/12 flex flex-col items-center">
-        <FreeLancerHeaderVue />
+        <FreeLancerHeaderVue target="home" />
         <div class="w-full text-purple-500 text-xl font-semibold bg-purple-50/60 rounded-lg py-2 px-8 mt-16 shadow-lg">JOB POSTS:</div>
         <div class="w-full h-80 flex my-4">
             <div class="w-2/3 h-full flex flex-col">
@@ -15,8 +15,8 @@
             <div class="w-1/3 h-full flex flex-col items-center">
                 <div class="w-full bg-purple-50/60 shadow-lg rounded-lg flex flex-col items-center py-4">
                     <div class="h-16 w-16 bg-purple-200 rounded-full"></div>
-                    <div class="text-purple-900 text-sm py-2 font-semibold">Username</div>
-                    <div class="text-purple-900 text-xs py-2">Software engineer...</div>
+                    <div class="text-purple-900 text-sm py-2 font-semibold">{{user_info.user.username}}</div>
+                    <div class="text-purple-900 text-xs py-2">{{user_info.user.bio || 'Freelancer'}}</div>
                     <div class="w-1/2 flex items-center my-8">
                         <div class="w-1/2 flex flex-col text-sm">
                             <div class="flex items-center text-purple-500 font-medium"><Icon icon="icons8:services" class="mr-2" />Services:</div>
@@ -24,9 +24,9 @@
                             <div class="flex items-center text-purple-500 font-medium"><Icon icon="icons8:services" class="mr-2" />Projects:</div>
                         </div>
                         <div class="w-1/2 flex flex-col text-sm items-center">
-                            <div class="text-purple-600 ml-4 font-semibold">12</div>
-                            <div class="text-purple-600 ml-4 font-semibold">12</div>
-                            <div class="text-purple-600 ml-4 font-semibold">12</div>
+                            <div class="text-purple-600 ml-4 font-semibold">{{user_info.services || 0}}</div>
+                            <div class="text-purple-600 ml-4 font-semibold">{{user_info.sells || 0}}</div>
+                            <div class="text-purple-600 ml-4 font-semibold">{{user_info.projects || 0}}</div>
                         </div>
                     </div>
 

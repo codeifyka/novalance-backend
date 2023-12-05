@@ -9,7 +9,7 @@ class CategoriesController extends Controller
 {
     public function getAll(Request $request)
     {
-        $categories = Category::query()->get(['*'])->all();
+        $categories = Category::all();
         return response()->json([
             "data" => $categories,
         ]);
