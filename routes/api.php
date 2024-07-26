@@ -91,6 +91,7 @@ Route::group([
 Route::group(
     [  'prefix' => 'proposals', 'middleware' => 'auth:sanctum'],
     function () {
+        Route::get('/getMyProposals', [ProposalController::class, 'getMyProposals']);
         Route::post('/create', [ProposalController::class, 'store']);
         Route::get('/{job_post_id}', [ProposalController::class, 'getByJobPostAndFreelancer']);
     }

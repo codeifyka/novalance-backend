@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\JobPost;
 
 class ProposalController extends Controller
 {
@@ -35,5 +36,18 @@ class ProposalController extends Controller
         } else {
             return response()->json(['message' => 'Proposal not found'], 404);
         }
+    }
+
+    public function getMyProposals():JsonResponse
+    {
+        $user = auth('api')->user();
+
+        // Get job posts created by the authenticated user
+        $jobPosts = JobPost::where('user_id', $user->id)->pluck('id');
+
+        // Get proposals for the job posts
+        $proposals = Proposal::whereIn('job_post_id', $jobPosts)->get();
+
+        return response()->json($proposals, 200);
     }
 }

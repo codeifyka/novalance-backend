@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Proposal;
 
 class JobPost extends Model
 {
@@ -26,5 +27,9 @@ class JobPost extends Model
         return $this->belongsToMany(Category::class, 'job_category', 'job_post_id', 'category_id');
     }
     
-    
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class, 'job_post_id');
+    }
+
 }
