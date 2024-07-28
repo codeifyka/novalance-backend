@@ -10,4 +10,12 @@ export default class RestProposals {
     async getByFreelancerJobId(job_id){
         return this.axiosInstance.get(`/api/proposals/${job_id}`).then(response => response.data);
     }
+
+    async getMyProposals(){
+        return this.axiosInstance.get(`/api/proposals/getMyProposals`).then(response => response.data);
+    }
+
+    async getFreelancerInfo(user_id){
+        return this.axiosInstance.get(`/api/user/${user_id}`).then(response => response.data);
+    }
 };

@@ -51,4 +51,19 @@ class UserController extends Controller
     
         return response()->json(['data' => $jobs]);
     }
+
+    public function getUserById($user_id)
+    {
+        $user = User::find($user_id);
+
+        if ($user) {
+            return response()->json([
+                "data" => $user
+            ]);
+        } else {
+            return response()->json([
+                "message" => "User not found"
+            ], 404);
+        }
+    }
 }

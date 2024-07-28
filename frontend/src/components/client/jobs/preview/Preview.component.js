@@ -22,7 +22,7 @@ export default {
       if(response.data){
           job.value = response.data;
       }
-  });
+    });
 
     return {
     job , colors

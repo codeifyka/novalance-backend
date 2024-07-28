@@ -1,0 +1,42 @@
+<transition name="fade" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+    <div v-if="isOpen" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-2/3 flex flex-col gap-8">
+            <div class="w-full flex flex-col items-center">
+                <div class="w-28 h-28 rounded-full capitalize bg-gray-50 flex items-center justify-center">{{freelancer.username}}</div>
+                <div class="text-purple font-bold capitalize ">{{freelancer.first_name}} {{freelancer.last_name}}</div>
+                <div class="flex items-center text-purple ">
+                    <Icon icon="subway:world-1" width="20" height="20" />
+                    <div class="capitalize font-light">{{freelancer.country}}</div>
+                </div>
+            </div>
+            <div class="w-full flex flex-col items-start mt-4">
+                <div class="flex items-center text-purple gap-2 ">
+                    <Icon icon="ic:baseline-email" width="20" height="20" />
+                    <div class="font-light">{{freelancer.email}}</div>
+                </div>
+                <div class="flex items-center text-purple gap-2 ">
+                    <Icon icon="file-icons:telegram" width="20" height="20" />
+                    <div class="font-light">{{freelancer.telephone}}</div>
+                </div>
+                <div class="flex items-center text-purple gap-2 ">
+                    <Icon icon="ph:gender-transgender-fill" width="20" height="20" />
+                    <div class="capitalize font-light">{{freelancer.gender}}</div>
+                </div>
+            </div>
+            <div class="w-full flex-col items-start">
+                <div class="text-purple font-semibold">Projects</div>
+                <div v-for="project in projects" class="flex flex-wrap gap-2">
+                    <div class="w-1/5 flex flex-col justify-between mb-4" v-for="project in projects">
+                        <a :href="`/project/${project.id}`" class="w-11/12 hover:w-5/6 duration-300 flex flex-col rounded-lg relative">
+                            <div class="w-full h-24 bg-violet-200 rounded-lg">
+                                <img :src="project.images[0]?.url || '/default_project_thumbnail.jpg'" class="w-full h-full object-cover rounded-lg" />
+                            </div>
+                            <div class="absolute text-sm bottom-0 left-0 px-4 py-1 text-purple-100 bg-black/30 w-full rounded-b-lg">{{project.title}}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button @click="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Close</button>
+    </div>
+</transition>

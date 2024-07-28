@@ -43,7 +43,7 @@ Route::group([
     Route::get('/{username}/services',[ServicesController::class, 'getAll']);
     Route::get('/{username}/projects',[ProjectsController::class, 'getAll']);
     Route::get('job/getAll', [UserController::class, 'getAllJobs']);//i have problem with jobcontroller recources thats why i wrote here
-
+    Route::get('/{user_id}', [UserController::class, 'getUserById']);
 });
 
 

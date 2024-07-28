@@ -1,3 +1,3 @@
-import ProposalVue from './Proposal.vue';
+import ClientProposalVue from './Proposal.vue';
 
-export { ProposalVue };
+export { ClientProposalVue };
