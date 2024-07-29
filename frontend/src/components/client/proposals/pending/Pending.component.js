@@ -4,15 +4,10 @@ import { ref } from 'vue';
 export default {
   components: { ClientHeaderVue, ProposalVue  },
   props: {proposals: Array},
-  setup({proposals}) {   
-    const menuValue = ref(false)
-    function menu(){
-        menuValue.value=!menuValue.value
-    }    
+  setup() {   
 
     return {
-      menuValue,
-      menu, proposals
+
     };
   },
 };

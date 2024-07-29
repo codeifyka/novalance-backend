@@ -1,30 +1,48 @@
+<Loading v-if="isLoading" />
 <div class="p-3 items-center bg-white flex justify-between my-10 mx-16 rounded-md" >
     <div class="flex justify-around w-2/5">
         <div class="h-10 w-10 flex justify-center items-center text-lg capitalize rounded-full bg-slate-500 text-white cursor-pointer" @click="openModal" >{{getFirstLetter(proposal.freelancer_image) }}</div>
         <p class="font-semibold w-2/3 underline opacity-80">{{proposal.job_title}}</p>
     </div>
-    <div class="flex justify-around text-gray-300 w-1/5">
+    <div class="flex justify-around text-gray-300 w-[35%]" v-if="status == 'pending'">
+        <div
+        :class="{'truncate w-16 hover:underline': isTruncated, 'hover:text-purple w-32 cursor-pointer': true}"
+        @click="toggleTruncate"
+        >{{proposal.cover_letter}}</div>
         <p class="flex flex-col items-center">
             <span>{{proposal.created_day}}</span>
             <span>{{proposal.created_time}}</span>
         </p>
-        <div class="flex flex-col items-center relative">
+        <div class="flex flex-col items-center relative" >
             <div @click="menu" class="absolute grid place-content-center p-5 w-1 h-1 cursor-pointer transition-colors duration-200 rounded-full hover:bg-violet-100 ">
                 <Icon icon="charm:menu-kebab" class="text-purple"/>
             </div>
             <div class="py-5 px-2 w-44 h-40 bg-violet-50 shadow-lg absolute top-10 right-14" v-if="menuValue">
                 <ul>
-                    <router-link to="/" class="flex items-center mb-2 p-2 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">
+                    <li @click="acceptProposal" class="flex items-center mb-2 p-2 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">
                         <Icon class="text-regal-purple" icon="basil:edit-solid" />
                         <span>Accept Proposal</span>
-                    </router-link>
-                    <li  class="flex items-center mb-2 p-2 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">
+                    </li>
+                    <li @click="deleteProposal"  class="flex items-center mb-2 p-2 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">
                         <Icon class="text-regal-purple" icon="material-symbols:delete" />
                         <span>Refuse Proposal</span>
                     </li>
                 </ul>
             </div>
         </div>
+    </div>
+    <div class="flex justify-around text-gray-300 w-1/5" v-else="status == 'active'">
+        <p class="flex flex-col items-center">
+            <span>{{proposal.started_day}}</span>
+            <span>{{proposal.started_time}}</span>
+        </p>
+        <p class="flex flex-col items-center" v-if="proposal.ends_at">
+            <span>{{proposal.ends_day}}</span>
+            <span>{{proposal.ends_time}}</span>
+        </p>
+        <p>
+            Not yet
+        </p>
     </div>
     <ModalVue :isOpen="isModalOpen" @close="isModalOpen = false" :freelancer="freelancer"/>
 </div>

@@ -28,8 +28,17 @@ export default {
       status.value = statusValue;
     };
 
+    const handleProposalAccepted = (proposalId) => {
+      doneProposals.value.push(pendingProposals.filter(proposal => proposal.id == proposalId))
+      pendingProposals.value = pendingProposals.filter(proposal => proposal.id !== proposalId);
+    }
+
+    const handleProposalDeleted = (proposalId) => {
+      pendingProposals.value = pendingProposals.filter(proposal => proposal.id !== proposalId);
+    }
+
     return {
-      changeSection, status, pendingProposals, doneProposals, activeProposals 
+      changeSection, status, pendingProposals, doneProposals, activeProposals, handleProposalAccepted, handleProposalDeleted,
     };
   },
 };

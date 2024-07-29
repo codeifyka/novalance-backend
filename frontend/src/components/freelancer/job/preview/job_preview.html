@@ -1,8 +1,8 @@
+<Loading v-if="isLoading" />
 <div class="w-full h-screen overflow-auto flex flex-col items-center bg-violet-50 freelancer-background">
     <div class="w-11/12 flex flex-col items-center">
         <FreeLancerHeaderVue target="services" />
     </div>
-    <Loading v-if="isLoading" />
 
     <div class="w-11/12 flex flex-col my-16 bg-violet-50/60 rounded-lg p-4">
         <div class="uppercase font-semibold text-lg text-text-spc-purple">Job Post: {{job.title}}</div>

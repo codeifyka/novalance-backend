@@ -18,7 +18,9 @@ return new class extends Migration
             $table->unsignedBigInteger('job_post_id');
             $table->enum('status', ['pending', 'active', 'done'])->default('pending');
             $table->timestamps();
-
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('ends_at')->nullable();
+            
             // Add foreign key constraints
             $table->foreign('freelancer_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('job_post_id')->references('id')->on('job_posts')->onDelete('cascade');

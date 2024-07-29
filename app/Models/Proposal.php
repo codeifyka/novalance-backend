@@ -13,7 +13,13 @@ class Proposal extends Model
         'freelancer_id',
         'job_post_id',
         'cover_letter',
-        'status'
+        'status',
+        'started_at',
+        'ends_at'
+    ];
+
+    protected $dates = [
+        'started_at', 'ends_at'
     ];
 
     public function user()

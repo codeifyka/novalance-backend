@@ -72,7 +72,8 @@ export default {
             job,colors,isModalOpen,
             openModal,
             handleSend,
-            isSent 
+            isSent,
+            isLoading
         };
     }
 }

@@ -50,4 +50,26 @@ class ProposalController extends Controller
 
         return response()->json($proposals, 200);
     }
+
+    public function acceptProposal($id): JsonResponse
+    {
+        $user = auth('api')->user();
+
+        // Find the proposal
+        $proposal = Proposal::where('id', $id)
+            ->whereHas('job_post', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->first();
+
+        if ($proposal) {
+            $proposal->status = 'active';
+            $proposal->started_at = now();
+            $proposal->save();
+
+            return response()->json(["data"=> $proposal], 200);
+        } else {
+            return response()->json(['message' => 'Proposal not found or you are not authorized to accept this proposal'], 404);
+        }
+
+    }
 }

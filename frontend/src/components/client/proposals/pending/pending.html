@@ -4,11 +4,12 @@
             <span>Freelancer</span>
             <span>Job Title</span>
         </div>
-        <div class="w-1/5 mr-2 flex justify-around">
+        <div class="w-[35%] mr-2 flex justify-around">
+            <span>Cover letter</span>
             <span>Date sent</span>
             <span>Action</span>
         </div>
     </div>
     <hr class="font-semibold text-gray-300 mx-16">
-    <ProposalVue v-for="proposal in proposals" :proposal="proposal"/>
+    <ProposalVue v-for="proposal in proposals" :proposal="proposal" status="pending"/>
 </div>
