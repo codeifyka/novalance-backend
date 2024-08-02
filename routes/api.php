@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FilesUploadController;
 use App\Http\Controllers\JobPostController;
 use App\Http\Controllers\ProjectsController;
@@ -96,5 +97,15 @@ Route::group(
         Route::get('/getFreelancerProposals', [ProposalController::class, 'getFreelancerProposals']);
         Route::get('/{job_post_id}', [ProposalController::class, 'getByJobPostAndFreelancer']);
         Route::put('{id}/accept', [ProposalController::class, 'acceptProposal']);
+    }
+);
+
+Route::group(
+    [
+        'prefix' => 'chats',
+        'middleware' =>'auth:sanctum'
+    ],
+    function () {
+        Route::get('/getAll', [ChatController::class, 'index']);
     }
 );

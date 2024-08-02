@@ -6,6 +6,7 @@ use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\JobPost;
+use Illuminate\Support\Facades\App;
 
 class ProposalController extends Controller
 {
@@ -65,8 +66,16 @@ class ProposalController extends Controller
             $proposal->status = 'active';
             $proposal->started_at = now();
             $proposal->save();
+            $chatData = [
+                'freelancer_id' => $proposal->freelancer_id,
+                'client_id' => $user->id,
+                'job_post_id' => $proposal->job_post_id,
+                'started_at' => $proposal->started_at,
+            ];
+            $chatController = App::make(ChatController::class);
+            $newChat = $chatController->store(new Request($chatData));
 
-            return response()->json(["data"=> $proposal], 200);
+            return response()->json(["data"=> $proposal, "chat" => $newChat], 200);
         } else {
             return response()->json(['message' => 'Proposal not found or you are not authorized to accept this proposal'], 404);
         }
