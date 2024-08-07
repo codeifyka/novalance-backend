@@ -13,7 +13,6 @@ class Message extends Model
         'message',
         'reciever',
         'sender',
-        'start_date',
-        'end_date',
+        'chat_id'
     ];
 }

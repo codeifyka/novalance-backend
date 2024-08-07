@@ -63,7 +63,7 @@ const routes = [
     { path: '/my_jobs', component: ClientMyjobsVue },
     { path: '/profile', component: FreeLancerProfileVue },
     { path: '/update_job/:id', component: ClientUpdateJobVue },
-    { path: '/chat_client_freelancer/', component: ClientChatVue },
+    { path: '/chat_client_freelancer/', component: ChatVue },
     { path: '/proposals/', component: ProposalsVue },
     { path: '/create_portfolio/', component: FreeLancerCreateProjectVue },
 ];

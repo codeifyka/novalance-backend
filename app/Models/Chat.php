@@ -15,6 +15,7 @@ class Chat extends Model
         'job_post_id',
         'start_date',
         'end_date',
+        'isRead',
     ];
 
     public function freelancer()

@@ -1,33 +1,35 @@
-<div class=" w-8/12 flex flex-col justify-between" style="height: 30.2rem;">
-    <div class="flex items-center justify-between  h-16 p-2 bg-opacity-80" style="background-color: #D8B4FE ; ">
-        <div class="flex justify-center items-center">
-            <div class="w-10 h-10 rounded-full bg-white"></div>
-            <div class=" flex flex-col w-2/3" v-if="freelancer">
-                <span class=" font-semibold ml-2">{{freelancer.first_name}} {{freelancer.lastname}} ({{job_post.title}})</span>
-                <span class=" font-semibold ml-2">@{{freelancer.username}}</span>
+<div class=" w-8/12 flex flex-col justify-between bg-violet-50" style="height: 30.2rem;">
+    <div class="bg-[#D8B4FE] rounded-lg overflow-auto">
+        <div class="flex items-center justify-between  h-16 p-2 bg-opacity-80 bg-slate-400/20   ">
+            <div class="flex justify-center items-center">
+                <div class="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center font-semibold text-xs capitalize">{{freelancer.freelancer.username}}</div>
+                <div class=" flex flex-col " v-if="freelancer && JobPost">
+                    <span class=" font-semibold ml-2 text-purple">{{freelancer.freelancer.first_name}} {{freelancer.freelancer.lastname}} ({{JobPost.title}})</span>
+                    <span class=" font-light ml-2 text-purple ">@{{freelancer.freelancer.username}}</span>
+                </div>
             </div>
+            <Icon icon="charm:menu-kebab" class="ml-10 m-5 cursor-pointer text-violet-600"/>
         </div>
-        <Icon icon="charm:menu-kebab" class="ml-10 m-5 cursor-pointer"/>
     </div>
-    <div class="flex flex-col">
-        <div class="mb-2" ref="messages"    >
-            <div class="flex justify-start items-center my-5">
-                <div class="w-10 h-10 rounded-full bg-violet-600 m-3"></div>
-                <span class=" px-5 py-1 my-2  rounded-xl shadow-lg bg-white">Hi</span>
-            </div>
-            <div class="text-end my-5">
-                <span class=" px-5 py-1 m-10  rounded-xl shadow-lg text-white" style="background-color: #9333EA;">Hi</span>
-            </div>
-            <div v-for="msg in messages" :key="msg.id" class="message" :class="{ 'self': msg.userId === userId }">
-                {{ msg.message }}
+    <div class="flex flex-col h-5/6">
+        <div class="mb-2 h-5/6 overflow-scroll" ref="messagesRef" >
+            <Loading v-if="isLoading" />
+            <div v-for="message in messages" :key="message.id" :class=" message.sender === user.id ? 'flex justify-end items-center':'flex justify-start items-center ' " v-if="user">
+                <span class="font-light mr-2 flex items-center" v-show="message.sender == user.id"><Icon icon="material-symbols:done" width="20" height="20" />{{(message.created_at).substring(12,16)}}</span>
+                <div class=" px-5 py-1 my-5 mr-10 rounded-xl shadow-lg flex flex-col items-end text-white bg-[#9333EA]"  v-if="message.sender == user.id"> 
+                    <span class="mr-2">{{ message.message }} </span>
+                </div>                
+                <div class="w-8 h-8 rounded-full bg-violet-600 mx-3" v-else></div>
+                <span class=" px-5 py-1 my-5 rounded-xl shadow-lg bg-white"  v-show="message.sender !== user.id">{{ message.message }} </span>
+                <span class="font-light ml-2" v-show="message.sender !== user.id">{{(message.created_at).substring(12,16)}}</span>                
             </div>
         </div>
         
-        <div class=" w-full h-16 flex items-center justify-between bg-transparent border-nice-purple" style="border-top: solid 0.5px #9333EA;">
-            <input v-model="newMessage" @keyup.enter="sendMessage" type="text" class="w-3/4 h-full focus:outline-none p-5 bg-transparent " placeholder="Write message">
+        <div class=" w-full flex items-center justify-between bg-transparent border-nice-purple rounded-lg m-2" style="border: solid 0.5px rgb(124 58 237);">
+            <input v-model="newMessage" @keyup.enter="sendMessage" type="text" class="w-3/4 focus:outline-none px-5 placeholder:text-text-spc-purple/60 text-text-spc-purple py-1 bg-transparent " placeholder="Write message">
             <div class="flex w-1/4 justify-end">
-                <Icon class="text-nice-purple cursor-pointer w-5 h-5 m-2" icon="material-symbols:upload" />
-                <Icon @click="sendMessage" class="text-nice-purple cursor-pointer w-5 h-5 mr-10 m-2 " icon="material-symbols:send" />
+                <Icon class="text-violet-600 cursor-pointer w-5 h-5 m-2" icon="material-symbols:upload" />
+                <Icon @click="sendMessage" class="text-violet-600 cursor-pointer w-5 h-5 mr-10 m-2 " icon="material-symbols:send" />
             </div>
         </div>
     </div>

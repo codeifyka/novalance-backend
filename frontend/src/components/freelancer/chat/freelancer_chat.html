@@ -9,82 +9,19 @@
             <div class="w-1/5 h-full flex flex-col items-start">
                 <div class="w-full text-purple-800 text-sm font-semibold py-2">RECENT CHATS:</div>
                 <div class="w-11/12 flex flex-col items-center">
-                    <div class="w-full flex items-center rounded-lg bg-violet-300/60 p-2 mb-2">
+                    <div class="w-full flex items-center rounded-lg bg-violet-300/60 p-2 mb-2" v-for="client in clients">
                         <div class="h-10 w-10 relative">
                             <img class="h-full w-full rounded-full object-cover" src="/default_profile_picture.jpg" />
                             <div class="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full"></div>
                         </div>
                         <div class="ml-2 flex-grow flex flex-col">
-                            <div class="text-sm font-semibold text-purple-500">Client username</div>
-                            <div class="text-xs text-purple-400">last message...</div>
-                        </div>
-                    </div>
-
-                    <div class="w-full flex items-center rounded-lg p-2">
-                        <div class="h-10 w-10 relative">
-                            <img class="h-full w-full rounded-full object-cover" src="/default_profile_picture.jpg" />
-                            <div class="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full"></div>
-                        </div>
-                        <div class="ml-2 flex-grow flex flex-col">
-                            <div class="text-sm font-semibold text-purple-500">Client username</div>
+                            <div class="text-sm font-semibold text-purple-500">{{client.client.username}}</div>
                             <div class="text-xs text-purple-400">last message...</div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="relative w-4/5 h-full flex flex-col items-center bg-violet-300/60 rounded-lg overflow-auto">
-                <div class="w-full flex items-center px-4 py-2">
-                    <div class="h-12 w-12 relative">
-                        <img class="h-full w-full rounded-full object-cover" src="/default_profile_picture.jpg" />
-                        <div class="absolute bottom-1 right-1 h-2 w-2 bg-green-500 rounded-full"></div>
-                    </div>
-                    <div class="ml-4 flex-grow flex flex-col">
-                        <div class="text-sm font-semibold text-purple-600">(Client username) Job Or Service Title</div>
-                    </div>
-                    <div class="text-purple-600">
-                        <Icon icon="uiw:more" />
-                    </div>
-                </div>
-                <div class="w-full flex flex-col flex-grow p-4 bg-violet-200/60 overflow-auto">
-                    <!-- Recv Message-->
-                    <div class="self-start flex flex-col mb-4" v-for="i in 5">
-                        <div class="flex flex-row items-center">
-                            <div class="h-10 w-10 bg-violet-200 rounded-full">
-                                <img class="h-full w-full rounded-full object-cover" src="/default_profile_picture.jpg" />
-                            </div>
-                            <div class="ml-2 flex flex-col">
-                                <div class="py-1 px-4 text-sm bg-violet-50/60 rounded-lg">Hi</div>
-                            </div>
-                        </div>
-                        <div class="ml-12 text-xs text-purple-500/60">12:00 PM</div>
-                    </div>
-
-                    <!-- Sent Message-->
-                    <div class="self-end flex flex-col mb-4" v-for="i in 5">
-                        <div class="flex flex-row items-center">
-                            <div class="mr-2 flex flex-col">
-                                <div class="py-1 px-4 text-sm bg-violet-600/60 text-purple-50 rounded-lg">Hi</div>
-                            </div>
-                        </div>
-                        <div class="mr-2 text-xs text-purple-500/60">12:00 PM</div>
-                    </div>
-                </div>
-                <div class="w-full flex items-center bg-violet-200/60">
-                    <div class="flex items-center bg-violet-400/60 rounded-lg flex-grow m-4">
-                        <input v-model="newMessage" @keyup.enter="sendMessage" class="bg-transparent w-full py-2 px-4 placeholder:text-purple-500" type="text" placeholder="Type your message..." />
-                        <div class="text-purple-600 text-xl mx-4">
-                            <Icon icon="material-symbols-light:upload-file" />
-                        </div>
-                        <div class="text-purple-600 text-xl mr-4">
-                            <Icon icon="material-symbols:image" />
-                        </div>
-                    </div>
-                    <div class="text-purple-600 text-xl mr-4">
-                        <Icon icon="iconamoon:send-fill" />
-                    </div>
-                </div>
-            </div>
+            <ChatRoomVue :client="currentUser" v-if="currentUser"/>
         </div>  
     </div>
 </div>

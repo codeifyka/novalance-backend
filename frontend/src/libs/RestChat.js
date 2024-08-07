@@ -3,7 +3,15 @@ export default class RestChat {
         this.axiosInstance = axiosInstance;
     }
 
-    async getFreelancers(){
+    async getUsers(){
         return this.axiosInstance.get(`/api/chats/getAll`).then(response => response.data);
-    }       
+    }
+
+    async storeMessage(message,chat_id){
+        return this.axiosInstance.post(`/api/chats/storeMessage`,{message,chat_id}).then(response => response.data);
+    }
+
+    async getAllMessages(chat_id){
+        return this.axiosInstance.post(`/api/chats/getAllMessages`,{chat_id}).then(response => response.data);
+    }
 };

@@ -9,27 +9,27 @@ export default {
     const axios = inject('axios');
     const restChat = new RestChat(axios)
     const freelancers = ref(null)
-    
-    const getFreelancer = async () => {
+    const currentUser = ref(null)
+
+    const getFreelancers = async () => {
       try{
-        const response = await restChat.getFreelancers()
-        console.log("first")
-        console.log(response)
-      if(response.data){
-        freelancers.value = response.data
-        
+        const response = await restChat.getUsers()
+        if(response.data){
+          freelancers.value = response.data
+          currentUser.value = response.data[0]
+        }
+      }catch(err){
+        console.log(err)
       }
-    }catch(err){
-      console.log(err)
-    }
     }
     
     onMounted(() => {
-      getFreelancer()
+      getFreelancers()
     });
 
     return {
-      freelancers
+      freelancers,
+      currentUser
     };
   },
 };

@@ -1,22 +1,22 @@
-<div class="w-full h-screen  bg-violet-50">
+<div class="w-full h-screen  bg-violet-50 text-purple">
     <ClientHeaderVue />
     <div class=" fixed top-0 mt-20 flex items-center  w-full ">
-        <div class=" w-4/12 rounded-br-3xl bg-nice-purple" style=" height: 30.2rem; ">
-            <h1 class="text-xl text-white py-2 px-7 font-bold mb-5">CHAT</h1>
-            <h1 class="text-lg text-white px-7 font-semibold my-2">RECENT CHAT</h1>
+        <div class=" w-4/12 rounded-br-3xl bg-violet-50" style=" height: 30.2rem; ">
+            <h1 class="text-xl  py-2 px-7 font-bold mb-5">CHAT</h1>
+            <h1 class="text-lg  px-7 font-semibold my-2">RECENT CHAT</h1>
             <div class="overflow-y-auto hide-scrollbar h-80">
                 <div      
                     v-for="freelancer in freelancers" 
                     :key="freelancer.freelancer.id" 
-                    :class="['flex', 'cursor-pointer', 'hover:bg-slate-200', 'hover:bg-opacity-20', ' p-2', 'rounded-2xl', 'mx-2', 'items-center']">
+                    :class="['flex',  'cursor-pointer', 'hover:bg-[#D8B4FE]',currentUser.freelancer_id == freelancer.freelancer.id ?'bg-[#D8B4FE]/80': '', 'hover:bg-opacity-20', ' p-2', 'rounded-2xl', 'mx-2', 'items-center']">
                     <div class="w-12 h-12 rounded-full bg-white mx-3"></div>
                     <div class=" flex flex-col w-2/3">
-                        <span class="text-white font-regular">{{freelancer.freelancer.first_name}} {{freelancer.freelancer.last_name}}</span>
-                        <span class="text-white opacity-80">Hi</span>
+                        <span class=" font-medium ">{{freelancer.freelancer.first_name}} {{freelancer.freelancer.last_name}}</span>
+                        <span class=" font-light opacity-80 ">Hi</span>
                     </div>
                 </div>
             </div>
         </div>
-        <ClientChatRoomVue />
+        <ClientChatRoomVue :freelancer="currentUser" v-if="currentUser"/>
     </div>
 </div>

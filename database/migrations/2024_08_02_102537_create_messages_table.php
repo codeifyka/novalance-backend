@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('reciever');
             $table->string('message');
             $table->unsignedBigInteger('chat_id');
+            $table->boolean('isRead')->default(false);
 
             $table->foreign('chat_id')->references('id')->on('chats')->onDelete('cascade');
             $table->foreign('sender')->references('id')->on('users')->onDelete('cascade');
