@@ -1,7 +1,5 @@
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useTransition } from '@vueuse/core';
-import RestFreelancerProjects from '@/libs/RestFreelancerProjects';
-import { inject } from 'vue';
 
 export default {
     props: {
@@ -9,35 +7,17 @@ export default {
             type: Boolean,
             required: true,
         },
-        freelancer: {
-            type: Object,
-            required: true,
+        end_date: {
+            type: String,
         }
     },
-    emits: ['close'],
-    setup({freelancer}, { emit }) {
-        const axios = inject('axios');
-        const restFreelancerProjects = new RestFreelancerProjects(axios);
-        const projects = ref(null);
-
+    emits: ['close', 'send'],
+    setup(props, { emit }) {
+        const expiryDate = ref(props.end_date.substring(0,10) || null)
         const closeModal = () => {
             emit('close');
         };
 
-        onMounted(async () => {
-            if (!freelancer) {
-                console.error('Freelancer data is null or undefined.');
-                return;
-            }
-            try {
-                const response = await restFreelancerProjects.getAll(freelancer.username);
-                projects.value = response.data;
-                console.log(projects.value);
-            } catch (err) {
-                console.log(err);
-            }
-        });
-        
         const enter = (el, done) => {
             const animation = el.animate([
                 { opacity: 0, transform: 'scale(0.9)' },
@@ -66,7 +46,7 @@ export default {
             closeModal,
             enter,
             leave,
-            projects
+            expiryDate,
         };
     },
 };

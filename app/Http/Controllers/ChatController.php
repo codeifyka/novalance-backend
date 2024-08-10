@@ -74,4 +74,24 @@ class ChatController extends Controller
             return response()->json(["error" => "no messages"]);
         }
     }
+    public function setExpiryDate(Request $request)
+    {
+        $request->validate([
+            'end_date' => 'required|date',
+            'chat_id' => 'required',
+        ]);
+        $chat = Chat::where('id', $request->chat_id)->first();
+    
+        if ($chat) {
+            $chat->end_date = $request->end_date;
+            if ($chat->save()) {
+                return response()->json(["data" => $chat]);
+            } else {
+                return response()->json(["error" => "Failed to save end date."], 500);
+            }
+        } else {
+            return response()->json(["error" => "No chat found with the given ID"], 404);
+        }
+    }
+    
 }

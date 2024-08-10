@@ -13,9 +13,8 @@
         <div @click="isShow=!isShow" class="relative hidden lg:flex text-white cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2" height="24" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 64C0 28.7 28.7 0 64 0H224V128c0 17.7 14.3 32 32 32H384V288H216c-13.3 0-24 10.7-24 24s10.7 24 24 24H384V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zM384 336V288H494.1l-39-39c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l80 80c9.4 9.4 9.4 24.6 0 33.9l-80 80c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l39-39H384zm0-208H256V0L384 128z"/></svg>
             Jobs
-            <Icon icon="raphael:arrowup" width="20" height="20" class="ml-2 mt-1" v-if="isShow"/>
-            <Icon icon="raphael:arrowdown"  width="20" height="20" class="ml-2 mt-1" v-else="isShow"/>
-            </div>
+            <Icon icon="raphael:arrowdown"  width="20" height="20" class="ml-2 mt-1 transition-all duration-200 " :class="[isShow ? 'rotate-180': '']"/>
+        </div>
         <div class="py-5 px-2 w-44 h-36 bg-regal-purple shadow-lg absolute top-12 left-2/3 transition-all duration-200  rounded-lg"   v-if="isShow">
             <ul class="text-white">
                 <router-link to="/my_jobs"  class="flex items-center mb-2 p-1 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">
@@ -39,8 +38,7 @@
         <div @click="isShow2=!isShow2" class="text-white hidden lg:flex relative cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 4a8 8 0 0 0-6.96 11.947A4.99 4.99 0 0 1 9 14h6a4.99 4.99 0 0 1 3.96 1.947A8 8 0 0 0 12 4Zm7.943 14.076A9.959 9.959 0 0 0 22 12c0-5.523-4.477-10-10-10S2 6.477 2 12a9.958 9.958 0 0 0 2.057 6.076l-.005.018l.355.413A9.98 9.98 0 0 0 12 22a9.947 9.947 0 0 0 5.675-1.765a10.055 10.055 0 0 0 1.918-1.728l.355-.413l-.005-.018ZM12 6a3 3 0 1 0 0 6a3 3 0 0 0 0-6Z" clip-rule="evenodd"/></svg>
             Profile
-            <Icon icon="raphael:arrowup" width="20" height="20" class="ml-2 mt-1" v-if="isShow2"/>
-            <Icon icon="raphael:arrowdown"  width="20" height="20" class="ml-2 mt-1" v-else="isShow2"/>
+            <Icon icon="raphael:arrowdown"  width="20" height="20" class="ml-2 mt-1 transition-all duration-200 " :class="[isShow2 ? 'rotate-180': '']"/>
                 <div class="py-5 px-2 w-40 h-28 bg-regal-purple shadow-lg absolute top-12  transition-all duration-200  rounded-lg"   v-if="isShow2">
                 <ul class="text-white">
                     <router-link to="/client/profile"  class="flex items-center mb-2 p-1 transition-colors duration-300 rounded-lg hover:bg-violet-100 hover:bg-opacity-75 cursor-pointer">

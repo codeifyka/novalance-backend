@@ -2,7 +2,11 @@ import { ref, onMounted, inject, nextTick } from 'vue';
 import RestChat from '@/libs/RestChat';
 import RestClientJobs from '@/libs/RestClientJobs'; 
 import RestUserSession from '@/libs/RestUserSession';
+import { ModalVue } from './modal';
 export default {
+  components: {
+    ModalVue
+  },
   props: {
     client: {
       required: true,
@@ -19,6 +23,9 @@ export default {
     const JobPost = ref(null);
     const user = ref(null);
     const restChat = new RestChat(axios)
+    const menuIsShow = ref(false)
+    const isModalOpen = ref(false)
+
     const connect = () => {
       ws.send(JSON.stringify({ type: 'connect', userId: user.value.id, channelId }));
     };
@@ -62,6 +69,10 @@ export default {
       }
     }
 
+    const openModal = () => {
+      isModalOpen.value = true;
+    }
+
     onMounted(async () => {
       let restUserSession = new RestUserSession(axios);
       user.value = (await restUserSession.getInfo()).data.user;
@@ -101,7 +112,10 @@ export default {
       sendMessage,
       messagesRef,
       JobPost,
-      user
+      user,
+      menuIsShow,
+      openModal,
+      isModalOpen,
     };
   },
 };

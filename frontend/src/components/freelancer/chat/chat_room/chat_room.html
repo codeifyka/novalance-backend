@@ -9,8 +9,20 @@
         <div class="ml-4 flex-grow flex flex-col">
             <div class="text-sm font-semibold text-purple-600" v-if="JobPost && client">({{client.client.username}}) {{JobPost.title}}</div>
         </div>
-        <div class="text-purple-600">
+        <div @click="menuIsShow=!menuIsShow" class="text-purple-600 cursor-pointer hover:opacity-70">
             <Icon icon="uiw:more" />
+        </div>
+        <div v-if="menuIsShow" class="py-2 px-2 w-46 bg-gray-50/60 shadow-lg absolute top-12 left-[80%] transition-all duration-200  rounded-lg">
+            <ul class="text-regal-purple">
+                <li @click="openModal" class="flex items-center mb-2 p-1 transition-colors duration-300 rounded-lg hover:bg-violet-300/60 hover:bg-opacity-75 cursor-pointer">
+                    <Icon icon="material-symbols:info" class="mr-2"/>
+                    <span>See chat info </span>
+                </li>
+                <li class="flex items-center mb-2 p-1 transition-colors duration-300 rounded-lg hover:bg-violet-300/60 hover:bg-opacity-75 cursor-pointer">
+                    <Icon icon="material-symbols:delete" class="mr-2"/>
+                    <span>Delete chat</span>
+                </li>
+            </ul>
         </div>
     </div>
     <div class="w-full flex flex-col flex-grow p-4 bg-violet-200/60 overflow-auto" ref="messagesRef">
@@ -48,4 +60,5 @@
             <Icon icon="iconamoon:send-fill" />
         </div>
     </div>
+    <ModalVue :isOpen="isModalOpen" @close="isModalOpen = false" :end_date="client.end_date" v-if="client"/>
 </div>

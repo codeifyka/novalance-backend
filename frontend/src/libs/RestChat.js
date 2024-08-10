@@ -14,4 +14,8 @@ export default class RestChat {
     async getAllMessages(chat_id){
         return this.axiosInstance.post(`/api/chats/getAllMessages`,{chat_id}).then(response => response.data);
     }
+
+    async setExpiryDate(chat_id, end_date){
+        return this.axiosInstance.post(`/api/chats/setExpiryDate`,{chat_id,end_date}).then(response => response.data);
+    }
 };
