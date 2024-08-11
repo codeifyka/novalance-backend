@@ -27,4 +27,9 @@ class Chat extends Model
     {
         return $this->belongsTo(User::class, 'client_id');
     }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(Message::class)->latest();
+    }
 }

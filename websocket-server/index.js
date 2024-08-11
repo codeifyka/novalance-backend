@@ -23,22 +23,26 @@ ws.on("connection", (client, request) => {
             return;
         }
         console.log(parsedMessage);
-
+  
         if (parsedMessage.type === 'connect') {
-            // Store the client with their userId and channelId
-            clients.set(parsedMessage.userId, { client, channelId: parsedMessage.channelId });
+            // Store the client with their userId, JobPostId, and channelId
+            clients.set(parsedMessage.userId, { 
+                client, 
+                channelId: parsedMessage.channelId,
+                JobPostId: parsedMessage.JobPostId
+            });
         } else if (parsedMessage.type === 'message') {
             const responseMessage = {
                 type: 'message',
                 userId: parsedMessage.userId,
                 message: parsedMessage.message,
                 channelId: parsedMessage.channelId,
+                JobPostId: parsedMessage.JobPostId
             };
 
-            // Send the message only to the client with the matching channelId
-            for (let [userId, clientInfo] of clients) {
-                if (userId === parsedMessage.channelId) {
-                    console.log(userId)
+        // Send the message only to the client with the matching channelId && JobPostId
+        for (let [userId, clientInfo] of clients) {
+            if (userId === parsedMessage.channelId && clientInfo.JobPostId === parsedMessage.JobPostId) {
                     clientInfo.client.send(JSON.stringify(responseMessage));
                 }
             }

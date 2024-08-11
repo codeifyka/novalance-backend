@@ -16,12 +16,12 @@ class ChatController extends Controller
         $chats = null ;
         if ($account === 'client') {
             $chats = Chat::where('client_id', $userId)
-                ->with('freelancer')
-                ->get();
+            ->with(['freelancer', 'lastMessage'])
+            ->get();
         } else {
             $chats = Chat::where('freelancer_id', $userId)
-                ->with('client')
-                ->get();
+            ->with(['client', 'lastMessage'])
+            ->get();
         }
 
         return response()->json(["data"=>$chats]);

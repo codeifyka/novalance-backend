@@ -1,5 +1,5 @@
 import { ClientHeaderVue } from '@/components/client/header';
-import { ref, onMounted, inject, nextTick } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import RestChat from '@/libs/RestChat';
 import { ClientChatRoomVue } from './chat_room';
 
@@ -27,9 +27,14 @@ export default {
       getFreelancers()
     });
 
+      const ChangeCurrentUser = (chat_id) => {
+        currentUser.value = freelancers.value.find(fr => fr.id == chat_id);
+      }
+
     return {
       freelancers,
-      currentUser
+      currentUser,
+      ChangeCurrentUser
     };
   },
 };

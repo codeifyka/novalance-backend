@@ -1,8 +1,7 @@
 import { FreeLancerHeaderVue } from '@/components/freelancer/header';
 import { JobPostVue } from '@/components/childcomponent/job_post';
 import RestUserSession from '@/libs/RestUserSession';
-import RestClientJobs from "@/libs/RestClientJobs";
-import { inject, onMounted, ref, nextTick } from 'vue';
+import { inject, onMounted, ref } from 'vue';
 import RestChat from '@/libs/RestChat';
 import { ChatRoomVue } from './chat_room';
 
@@ -18,7 +17,7 @@ export default {
         const restChat = new RestChat(axios)
         const clients = ref(null)
         const currentUser = ref(null)
-    
+
         const getClients = async () => {
             try {
                 const response = await restChat.getUsers()
@@ -31,12 +30,20 @@ export default {
             }
         }
 
-        onMounted(() => {
+        const ChangeCurrentUser = (chat_id) => {
+            currentUser.value = clients.value.find(fr => fr.id == chat_id);
+        }
+
+        onMounted(async() => {
             getClients()
         });
 
         return {
-            colors, isLoading, clients, currentUser
+            colors,
+            isLoading,
+            clients,
+            currentUser,
+            ChangeCurrentUser
         };
 
     }

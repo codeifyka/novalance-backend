@@ -26,7 +26,8 @@
         </div>
     </div>
     <div class="w-full flex flex-col flex-grow p-4 bg-violet-200/60 overflow-auto" ref="messagesRef">
-        <div class="flex flex-col mb-4" :class="message.sender == user.id ?'self-end items-end' : 'self-start'" v-for="message in messages" >
+        <Loading v-if="isLoading" />
+        <div class="flex flex-col mb-4" :class="message.sender == user.id ?'self-end items-end' : 'self-start'" v-for="message in messages" v-if="user">
             <!-- Recv Message-->
             <div class="flex flex-row items-center" v-show="message.sender !== user.id">
                 <div class="h-10 w-10 bg-violet-200 rounded-full">

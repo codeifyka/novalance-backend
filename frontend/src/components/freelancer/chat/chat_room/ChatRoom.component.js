@@ -1,40 +1,55 @@
-import { ref, onMounted, inject, nextTick } from 'vue';
+import { ref, onMounted, inject, nextTick, toRefs, watch } from 'vue';
 import RestChat from '@/libs/RestChat';
 import RestClientJobs from '@/libs/RestClientJobs'; 
 import RestUserSession from '@/libs/RestUserSession';
 import { ModalVue } from './modal';
+
 export default {
   components: {
-    ModalVue
+    ModalVue,
   },
   props: {
     client: {
+      type: Object,
       required: true,
     },
   },
-  setup({ client }) {
-    const ws = inject('ws'),
-    channelId = client.client.id,
-    messages = ref([]),
-    newMessage = ref(''),
-    messagesRef = ref(null),
-    axios = inject('axios');
+  setup(props) {
+    const { client } = toRefs(props),
+      ws = inject('ws'),
+      messages = ref([]),
+      newMessage = ref(''),
+      messagesRef = ref(null),
+      axios = inject('axios');
+
     const resClientJobPost = new RestClientJobs(axios);
     const JobPost = ref(null);
     const user = ref(null);
-    const restChat = new RestChat(axios)
-    const menuIsShow = ref(false)
-    const isModalOpen = ref(false)
+    const restChat = new RestChat(axios);
+    const menuIsShow = ref(false);
+    const isModalOpen = ref(false);
+    const isLoading = ref(false);
 
     const connect = () => {
-      ws.send(JSON.stringify({ type: 'connect', userId: user.value.id, channelId }));
+      ws.send(JSON.stringify({
+        type: 'connect',
+        userId: user.value.id,
+        channelId: client.value.client.id,
+        JobPostId: JobPost.value.id,
+      }));
     };
 
     const sendMessage = async () => {
       if (newMessage.value.trim() !== '') {
-        ws.send(JSON.stringify({ type: 'message', userId: user.value.id, message: newMessage.value, channelId }));
-        const res = await restChat.storeMessage(newMessage.value, client.id)
-        if(res.data){
+        ws.send(JSON.stringify({
+          type: 'message',
+          userId: user.value.id,
+          message: newMessage.value,
+          channelId: client.value.client.id,
+          JobPostId: JobPost.value.id,
+        }));
+        const res = await restChat.storeMessage(newMessage.value, client.value.id);
+        if (res.data) {
           newMessage.value = '';
           messages.value.push(res.data);
           messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
@@ -44,7 +59,7 @@ export default {
 
     const getJobPostById = async () => {
       try {
-        const response = await resClientJobPost.getById(client.job_post_id);
+        const response = await resClientJobPost.getById(client.value.job_post_id);
         if (response.data) {
           JobPost.value = response.data;
         }
@@ -54,30 +69,48 @@ export default {
     };
 
     const getAllMessages = async () => {
-      try{
-        const res = await restChat.getAllMessages(client.id);
-        if(res.data){
+      try {
+        isLoading.value = true;
+        const res = await restChat.getAllMessages(client.value.id);
+        if (res.data) {
           messages.value = res.data;
-          nextTick(() => {
-            if (messagesRef.value) {
-              messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
-            }
-          });
         }
-      }catch (err){
-        console.log(err)
+      } catch (err) {
+        console.log(err);
+      } finally {
+        isLoading.value = false;
+        nextTick(() => {
+          if (messagesRef.value) {
+            messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
+          }
+        });
       }
-    }
+    };
 
     const openModal = () => {
       isModalOpen.value = true;
-    }
+    };
+
+    watch(client, async (newClient) => {
+      if (newClient) {
+        let restUserSession = new RestUserSession(axios);
+        user.value = (await restUserSession.getInfo()).data.user;
+
+        // Ensure JobPost and messages are loaded before connecting
+        await getJobPostById();
+        await getAllMessages();
+        connect();
+      }
+    }, { immediate: true });
 
     onMounted(async () => {
       let restUserSession = new RestUserSession(axios);
       user.value = (await restUserSession.getInfo()).data.user;
+
+      // Ensure JobPost and messages are loaded before connecting
+      await getJobPostById();
+      await getAllMessages();
       connect();
-      getAllMessages()
     });
 
     onMounted(() => {
@@ -85,11 +118,11 @@ export default {
         try {
           const message = JSON.parse(event.data);
           console.log('Received message:', message);
-          if (message.channelId === user.value.id) {
-            const  date = new Date();
-            const  Isosdate = date.toISOString()
-            message.created_at = Isosdate
-            messages.value =[...messages.value, message] ;
+          if (message.channelId === user.value.id && message.JobPostId == JobPost.value.id) {
+            const date = new Date();
+            const Isosdate = date.toISOString();
+            message.created_at = Isosdate;
+            messages.value = [...messages.value, message];
             nextTick(() => {
               if (messagesRef.value) {
                 messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
@@ -101,7 +134,7 @@ export default {
         }
       };
 
-      if (client) {
+      if (client.value) {
         getJobPostById();
       }
     });
@@ -116,6 +149,7 @@ export default {
       menuIsShow,
       openModal,
       isModalOpen,
+      isLoading,
     };
   },
 };

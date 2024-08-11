@@ -1,4 +1,4 @@
-import { ref, onMounted, inject, nextTick } from 'vue';
+import { ref, onMounted, inject, nextTick, toRefs, watch } from 'vue';
 import RestChat from '@/libs/RestChat';
 import RestClientJobs from '@/libs/RestClientJobs'; 
 import RestUserSession from '@/libs/RestUserSession';
@@ -12,9 +12,8 @@ export default {
       required: true,
     },
   },
-  setup({ freelancer }) {
+  setup( props ) {
     const ws = inject('ws'),
-    channelId = freelancer.freelancer.id,
     messages = ref([]),
     newMessage = ref(''),
     messagesRef = ref(null),
@@ -27,19 +26,19 @@ export default {
     const menuIsShow = ref(false)
     const isModalOpen = ref(false)
     const toastManager = inject("toastManager")
+    const { freelancer } = toRefs(props);
 
     const connect = () => {
-      ws.send(JSON.stringify({ type: 'connect', userId: user.value.id, channelId }));
+      ws.send(JSON.stringify({ type: 'connect', userId: user.value.id, channelId: freelancer.value.freelancer.id, JobPostId: JobPost.value?.id }));
     };
 
     const sendMessage = async () => {
       if (newMessage.value.trim() !== '') {
-        ws.send(JSON.stringify({ type: 'message', userId: user.value.id, message: newMessage.value, channelId }));
-        const res = await restChat.storeMessage(newMessage.value, freelancer.id)
+        ws.send(JSON.stringify({ type: 'message', userId: user.value.id, message: newMessage.value, channelId: freelancer.value.freelancer.id, JobPostId: JobPost.value.id }));
+        const res = await restChat.storeMessage(newMessage.value, freelancer.value.id)
         if(res.data){
           newMessage.value = '';
           messages.value.push(res.data);
-          console.log(messagesRef)
           messagesRef.value.scrollTop = messagesRef.value.scrollHeight;
         }
       }
@@ -47,7 +46,7 @@ export default {
 
     const getJobPostById = async () => {
       try {
-        const response = await resClientJobPost.getById(freelancer.job_post_id);
+        const response = await resClientJobPost.getById(freelancer.value.job_post_id);
         if (response.data) {
           JobPost.value = response.data;
         }
@@ -59,7 +58,7 @@ export default {
     const getAllMessages = async () => {
       try{
         isLoading.value = true;
-        const res = await restChat.getAllMessages(freelancer.id);
+        const res = await restChat.getAllMessages(freelancer.value.id);
         if(res.data){
           messages.value = res.data;
           console.log(messages.value)
@@ -80,10 +79,20 @@ export default {
       isModalOpen.value = true;
     }
 
+    watch(freelancer, async(newFreelancer) => {
+      if (newFreelancer) {
+        let restUserSession = new RestUserSession(axios);
+        user.value = (await restUserSession.getInfo()).data.user;  
+        // Ensure JobPost and messages are loaded before connecting
+        await getJobPostById();
+        await getAllMessages();
+        connect()
+      }
+    }, { immediate: true });
+
     onMounted(async () => {
       let restUserSession = new RestUserSession(axios);
       user.value = (await restUserSession.getInfo()).data.user;
-      console.log(user.value)
       connect();
       getAllMessages()
     });
@@ -93,7 +102,7 @@ export default {
         try {
           const message = JSON.parse(event.data);
           console.log('Received message:', message);
-          if (message.channelId === user.value.id) {
+          if (message.channelId === user.value.id && message.JobPostId == JobPost.value.id) {
             const  date = new Date();
             const  Isosdate = date.toISOString()
             message.created_at = Isosdate
@@ -109,7 +118,7 @@ export default {
         }
       };
 
-      if (freelancer) {
+      if (freelancer.value) {
         getJobPostById();
       }
     });
