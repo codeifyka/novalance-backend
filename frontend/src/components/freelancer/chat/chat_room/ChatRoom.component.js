@@ -14,7 +14,7 @@ export default {
       required: true,
     },
   },
-  setup(props) {
+  setup(props,{emit}) {
     const { client } = toRefs(props),
       ws = inject('ws'),
       messages = ref([]),
@@ -129,6 +129,7 @@ export default {
               }
             });
           }
+          emit('received-message', message);
         } catch (error) {
           console.error('Error parsing message:', error);
         }

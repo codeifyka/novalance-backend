@@ -19,6 +19,6 @@
                 </div>
             </div>
         </div>
-        <ClientChatRoomVue :freelancer="currentUser" v-if="currentUser"/>
+        <ClientChatRoomVue :freelancer="currentUser" @received-message="handleMessage" v-if="currentUser"/>
     </div>
 </div>

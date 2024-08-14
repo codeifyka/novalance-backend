@@ -2,6 +2,7 @@ import { ClientHeaderVue } from '@/components/client/header';
 import { ref, onMounted, inject } from 'vue';
 import RestChat from '@/libs/RestChat';
 import { ClientChatRoomVue } from './chat_room';
+import RestUserSession from '@/libs/RestUserSession';
 
 export default {
   components: { ClientHeaderVue, ClientChatRoomVue },
@@ -27,14 +28,24 @@ export default {
       getFreelancers()
     });
 
-      const ChangeCurrentUser = (chat_id) => {
-        currentUser.value = freelancers.value.find(fr => fr.id == chat_id);
-      }
+    const ChangeCurrentUser = (chat_id) => {
+      currentUser.value = freelancers.value.find(fr => fr.id == chat_id);
+    }
+
+    const handleMessage = (message) => {
+      console.log('Message received from child:', message);
+      freelancers.value.filter(freelancer => {
+        if(freelancer.job_post_id == message.JobPostId && freelancer.freelancer_id == message.userId){
+          freelancer.last_message.message = message.message
+        }
+      })
+    }
 
     return {
       freelancers,
       currentUser,
-      ChangeCurrentUser
+      ChangeCurrentUser,
+      handleMessage
     };
   },
 };

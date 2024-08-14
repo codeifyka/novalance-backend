@@ -12,7 +12,7 @@ export default {
       required: true,
     },
   },
-  setup( props ) {
+  setup( props, { emit } ) {
     const ws = inject('ws'),
     messages = ref([]),
     newMessage = ref(''),
@@ -61,7 +61,6 @@ export default {
         const res = await restChat.getAllMessages(freelancer.value.id);
         if(res.data){
           messages.value = res.data;
-          console.log(messages.value)
         }
       }catch (err){
         console.log(err)
@@ -113,6 +112,7 @@ export default {
               }
             });
           }
+          emit('received-message', message);
         } catch (error) {
           console.error('Error parsing message:', error);
         }

@@ -42,7 +42,7 @@ ws.on("connection", (client, request) => {
 
         // Send the message only to the client with the matching channelId && JobPostId
         for (let [userId, clientInfo] of clients) {
-            if (userId === parsedMessage.channelId && clientInfo.JobPostId === parsedMessage.JobPostId) {
+            if (userId === parsedMessage.channelId) {
                     clientInfo.client.send(JSON.stringify(responseMessage));
                 }
             }

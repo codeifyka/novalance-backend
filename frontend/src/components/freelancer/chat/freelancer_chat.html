@@ -25,7 +25,7 @@
                     </div>
                 </div>
             </div>
-            <ChatRoomVue :client="currentUser" v-if="currentUser"/>
+            <ChatRoomVue :client="currentUser" v-if="currentUser" @received-message="handleMessage"/>
         </div>  
     </div>
 </div>

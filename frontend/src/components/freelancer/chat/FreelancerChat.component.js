@@ -34,6 +34,15 @@ export default {
             currentUser.value = clients.value.find(fr => fr.id == chat_id);
         }
 
+        const handleMessage = (message) => {
+            clients.value.filter(client => {
+                if(client.job_post_id == message.JobPostId && client.client_id == message.userId){
+                    client.last_message.message = message.message
+                    console.log(client)
+                }
+            })
+        }      
+
         onMounted(async() => {
             getClients()
         });
@@ -43,7 +52,8 @@ export default {
             isLoading,
             clients,
             currentUser,
-            ChangeCurrentUser
+            ChangeCurrentUser,
+            handleMessage
         };
 
     }
