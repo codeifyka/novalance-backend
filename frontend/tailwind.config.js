@@ -10,7 +10,8 @@ export default {
           'regal-purple':'#38213F',
           'purple':'#6B21A8',
           'nice-purple':'#9F89C2',
-          'text-spc-purple':'#C084FC'
+          'text-spc-purple':'#C084FC',
+          'primary': '#7E22CE'
         },
       },
     },
