@@ -1,22 +1,65 @@
-<div :class="styles.container">
+<div :class="['h-screen', 'w-full', 'flex', isAccountTypeSelected ? 'hidden' : '']">
     <Loading v-if="isLoading" />
-    <div :class="styles.inner">
-        <div :class="styles.headTitle">Sign Up</div>
-        <div :class="styles.form">
-            <input v-model="username" :class="styles.long_input" type="text" placeholder="Username" />
-            <input v-model="first_name" :class="styles.input" type="text" placeholder="First Name" />
-            <input v-model="last_name" :class="styles.input" type="text" placeholder="Last Name" />
-            <input v-model="email" :class="styles.long_input" type="email" placeholder="Email" />
-
-            <select v-model="account_type" :class="styles.long_input">
-                <option>freelancer</option>
-                <option>client</option>
-            </select>
- 
-            <input v-model="password" :class="styles.input" type="password" placeholder="Password" />
-            <input v-model="confirm_password" :class="styles.input" type="password" placeholder="Confirm Password" />
-            <a href="/sign_in" :class="styles.signInBtn">Already have an account ?</a>
+    <div class="w-1/2 h-full bg-gray-300 hidden md:block overflow-hidden">
+        <img src="@/assets/signin.png" alt="" class=" bg-cover">
+    </div>
+    <div class="w-full md:w-1/2 h-full flex items-center justify-center bg-white">
+        <div class="flex flex-col gap-4 items-center w-full mx-8 md:mx-16 lg:mx-32">
+            <div class="flex flex-col gap-2">
+                <div class="font-bold text-xl md:text-3xl">Join as Client Or FreeLancer</div>
+                <div class="opacity-50 text-xs">Create an accunt in our platform</div>
+            </div>
+            <div @click="setAccountType('client')" class="px-16 py-2 text-gray-50 font-semibold rounded-md bg-primary hover:bg-opacity-75 cursor-pointer text-sm w-full text-center mx-auto">Client</div>
+            <div>Or</div>
+            <div @click="setAccountType('freelancer')" class="px-16 py-2 text-gray-50 font-semibold rounded-md bg-primary hover:bg-opacity-75 cursor-pointer text-sm w-full text-center mx-auto">Free Lancer</div>
+            <div class="text-xs flex gap-1 font-semibold">
+                <div>Already have an account?</div>
+                <a href="/sign_in" class="text-primary hover:text-opacity/50 cursor-pointer">Sign In</a>
+            </div>
         </div>
-        <div @click="signUp" :class="styles.signUpBtn">Sign Up</div>
+    </div>
+</div>
+
+<div :class="['h-screen', 'w-full', 'flex', isAccountTypeSelected ? '' : 'hidden']">
+    <Loading v-if="isLoading" />
+    <div class="w-1/2 h-full bg-gray-300 hidden md:block overflow-hidden">
+        <img src="@/assets/signin.png" alt="" class=" bg-cover">
+    </div>
+    <div class="w-full md:w-1/2 h-full flex items-center justify-center bg-white">
+        <div class="flex flex-col gap-8 w-full mx-8 md:mx-16 lg:mx-32">
+            <div class="flex flex-col gap-2">
+                <div class="font-bold text-xl  md:text-3xl">Welcome to NovaLance</div>
+                <div class="opacity-50 text-xs">Register your account</div>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="flex md:flex-row md:gap-16 flex-col gap-4 md:items-center">
+                    <div class="flex gap-2 flex-col">
+                        <div class="text-sm font-semibold">First Name</div>
+                        <input v-model="first_name" class="bg-transparent font-semibold border-gray-200 rounded-md placeholder:text-opacity-75 text-xs border p-2 w-full mx-auto outline-none" type="text" placeholder="Enter your First Name" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="text-sm font-semibold">Last Name</div>
+                        <input v-model="last_name" class="bg-transparent font-semibold border-gray-200 rounded-md placeholder:text-opacity-75 text-xs border p-2 w-full mx-auto outline-none" type="email" placeholder="Enter your Last Name" />
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div class="text-sm font-semibold">Username</div>
+                    <input v-model="username" class="bg-transparent font-semibold border-gray-200 rounded-md placeholder:text-opacity-75 text-xs border p-2 w-full mx-auto outline-none" type="text" placeholder="Enter your username" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div class="text-sm font-semibold">Email</div>
+                    <input v-model="email" class="bg-transparent font-semibold border-gray-200 rounded-md placeholder:text-opacity-75 text-xs border p-2 w-full mx-auto outline-none" type="email" placeholder="Enter your email" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <div class="text-sm font-semibold">Password</div>
+                    <input v-model="password" class="bg-transparent font-semibold border-gray-200 rounded-md placeholder:text-opacity-75 text-xs border p-2 w-full mx-auto outline-none" type="password" placeholder="Enter your password" />
+                </div>
+            </div>
+            <div @click="signUp" class="px-16 py-2 text-gray-50 font-semibold rounded-md bg-primary hover:bg-opacity-75 cursor-pointer text-sm w-full text-center mx-auto">Sign Up</div>
+            <div class="text-xs flex gap-1 font-semibold">
+                <div>Already have an account?</div>
+                <a href="/sign_in" class="text-primary hover:text-opacity/50 cursor-pointer">Sign In</a>
+            </div>
+        </div>
     </div>
 </div>

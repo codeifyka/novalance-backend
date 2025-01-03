@@ -19,7 +19,7 @@ export default {
 
         const isLoading = ref(false);
         const restUserSession = new RestUserSession(axios);
-
+        const isAccountTypeSelected = ref(false);
         const username = ref('');
         const first_name = ref('');
         const last_name = ref('');
@@ -48,7 +48,7 @@ export default {
                 account_type: account_type.value, 
                 email: email.value,
                 password: password.value,
-                confirm_password: confirm_password.value,
+                confirm_password: password.value,
             }).then(response => {
                 isLoading.value = false;
                 console.log(response);
@@ -65,6 +65,11 @@ export default {
             });
         }
 
+        const setAccountType = (accountType) => { 
+            isAccountTypeSelected.value = true;
+            account_type.value = accountType;
+        }
+
         return {
             styles,
             username,
@@ -76,6 +81,8 @@ export default {
             confirm_password,
             signUp,
             isLoading,
+            setAccountType,
+            isAccountTypeSelected
         };
     }
 }
