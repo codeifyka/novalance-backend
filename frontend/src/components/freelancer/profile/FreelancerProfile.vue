@@ -1,3 +1,3 @@
 <template src="./freelancer_profile.html"></template>
 
-<script src="./FreelancerProfile.component.js" />
+<script src="./FreelancerProfile.component.ts" />

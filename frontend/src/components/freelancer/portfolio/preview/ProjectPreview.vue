@@ -1,3 +1,3 @@
 <template src="./project_preview.html"></template>
 
-<script src="./ProjectPreview.component.js" />
+<script src="./ProjectPreview.component.ts" />

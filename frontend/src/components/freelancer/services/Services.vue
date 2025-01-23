@@ -1,3 +1,3 @@
 <template src="./services.html"></template>
 
-<script src="./Services.component.js" />
+<script src="./Services.component.ts" />

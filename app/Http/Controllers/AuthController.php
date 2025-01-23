@@ -24,11 +24,12 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
-
+        error_log($credentials['email']);
+        error_log($credentials['password']);
         if (! $token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
+        error_log("Succed");
         return $this->respondWithToken($token);
     }
 
@@ -58,11 +59,14 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         $user = auth('api')->user();
+        error_log("$user");
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'account_type' => $user->account_type
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+                'account_type' => $user->account_type
+            ]
         ]);
     }
 }

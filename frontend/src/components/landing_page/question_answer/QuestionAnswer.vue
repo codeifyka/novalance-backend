@@ -1,6 +1,6 @@
 <template src="./question_answer.html"></template>
 
-<script src="./QuestionAnswer.component.js" />
+<script src="./QuestionAnswer.component.ts" />
 
 <style scoped>
 .slide-fade-enter-active,

@@ -1,3 +1,3 @@
 <template src="./modal.html"></template>
 
-<script src="./Modal.component.js"></script>
+<script src="./Modal.component.ts"></script>

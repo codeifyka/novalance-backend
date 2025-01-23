@@ -1,27 +1,26 @@
 <Loading v-if="isLoading" />
-<div class="p-3 items-center bg-white/50 flex justify-between my-10 mx-16 rounded-md" >
+<div class="p-3 items-center bg-white/50 flex justify-between my-10 mx-16 rounded-md">
     <div class="flex justify-around w-2/5">
-        <div class="h-10 w-10 flex justify-center items-center text-lg capitalize rounded-full bg-slate-500 text-purple cursor-pointer" @click="openModal" >{{getFirstLetter(proposal.client_image) }}</div>
-        <p class="font-semibold w-2/3 underline opacity-80 text-purple">{{proposal.job_title}}</p>
+        <div class="h-10 w-10 flex justify-center items-center text-lg capitalize rounded-full bg-slate-500 text-purple cursor-pointer"
+            @click="openModal">{{getFirstLetter(client.username) }}</div>
+        <p class="font-semibold w-2/3 underline opacity-80 text-purple">{{jobTitle}}</p>
     </div>
     <div class="flex justify-around text-gray-300 w-[35%]" v-if="status == 'pending'">
-        <div
-        :class="{'truncate w-16 hover:underline': isTruncated, 'hover:text-purple w-32 cursor-pointer': true}"
-        @click="toggleTruncate"
-        >{{proposal.cover_letter}}</div>
+        <div :class="{'truncate w-16 hover:underline': isTruncated, 'hover:text-purple w-32 cursor-pointer': true}"
+            @click="toggleTruncate">{{proposal.cover_letter}}</div>
         <p class="flex flex-col items-center">
-            <span>{{proposal.created_day}}</span>
-            <span>{{proposal.created_time}}</span>
+            <span>{{createdAtDay}}</span>
+            <span>{{createdAtTime}}</span>
         </p>
     </div>
     <div class="flex justify-around text-purple w-1/5" v-else="status == 'active'">
         <p class="flex flex-col items-center">
-            <span>{{proposal.started_day}}</span>
-            <span>{{proposal.started_time}}</span>
+            <span>{{startedAtDay}}</span>
+            <span>{{startedAtTime}}</span>
         </p>
         <p class="flex flex-col items-center" v-if="proposal.ends_at">
-            <span>{{proposal.ends_day}}</span>
-            <span>{{proposal.ends_time}}</span>
+            <span>{{endedAtDay}}</span>
+            <span>{{endedAtTime}}</span>
         </p>
         <p>
             Not yet

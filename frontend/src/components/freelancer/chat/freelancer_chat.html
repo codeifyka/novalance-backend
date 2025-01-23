@@ -6,26 +6,25 @@
     <div class="w-11/12 flex-grow overflow-auto flex flex-col my-16 bg-gray-50/60 rounded-lg p-4">
         <div class="uppercase font-semibold text-lg text-purple-800">Chat:</div>
         <div class="w-full flex-grow overflow-auto flex flex-row items-center">
-            <div class="md:w-1/5 w-full md:block h-full flex flex-col items-start" :class="chatScreenState? 'hidden' : 'block'">
+            <div class="md:w-1/5 w-full md:block h-full flex flex-col items-start"
+                :class="chatScreenState? 'hidden' : 'block'">
                 <div class="w-full text-purple-800 text-sm font-semibold py-2">RECENT CHATS:</div>
                 <div class="w-11/12 flex flex-col items-center">
-                    <div 
-                        :class="['w-full', 'cursor-pointer', 'flex', 'items-center', 'rounded-lg','hover:bg-violet-300/60', currentUser.client_id == client.client.id && currentUser.job_post_id == client.job_post_id ?'bg-violet-300/60': '', 'p-2', 'mb-2',]" 
-                        v-for="client in clients"
-                        @click="ChangeCurrentUser(client.id)"
-                    >
+                    <div :class="['w-full', 'cursor-pointer', 'flex', 'items-center', 'rounded-lg','hover:bg-violet-300/60', currentUser.client_id == client.client.id && currentUser.job_post_id == client.job_post_id ?'bg-violet-300/60': '', 'p-2', 'mb-2',]"
+                        v-for="client in clients" @click="ChangeCurrentUser(client.id)">
                         <div class="h-10 w-10 relative">
                             <img class="h-full w-full rounded-full object-cover" src="/default_profile_picture.jpg" />
                             <div class="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full"></div>
                         </div>
                         <div class="ml-2 flex-grow flex flex-col">
                             <div class="text-sm font-semibold text-purple-500">{{client.client.username}}</div>
-                            <div class="text-xs text-purple-400">{{client.last_message?.message}}...</div>
+                            <div class="text-xs text-purple-400">{{clientLastMessage}}...</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <ChatRoomVue :client="currentUser" :class="chatScreenState? 'block' : 'hidden'" @chatState="toggleChatScreen" v-if="currentUser" @received-message="handleMessage"/>
-        </div>  
+            <ChatRoomVue :client="currentUser" :class="chatScreenState? 'block' : 'hidden'"
+                @chatState="toggleChatScreen" v-if="currentUser" @received-message="handleMessage" />
+        </div>
     </div>
 </div>

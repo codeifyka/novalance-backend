@@ -1,6 +1,6 @@
 <template src="./card.html"></template>
 
-<script src="./Card.component.js" />
+<script src="./Card.component.ts" />
 
 <style scoped>
 

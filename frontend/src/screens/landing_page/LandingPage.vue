@@ -1,3 +1,3 @@
 <template src="./landing_page.html"></template>
 
-<script src="./LandingPage.component.js" />
+<script src="./LandingPage.component.ts" />

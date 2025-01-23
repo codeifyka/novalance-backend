@@ -1,11 +1,11 @@
 {
-  "name": "frontend",
+  "name": "novalance-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc -b && vite build",
     "preview": "vite preview --host"
   },
   "dependencies": {
@@ -22,10 +22,14 @@
   },
   "devDependencies": {
     "@iconify/vue": "^4.1.1",
+    "@types/node": "^22.10.7",
     "@vitejs/plugin-vue": "^4.2.3",
+    "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
-    "vite": "^4.4.5"
+    "typescript": "~5.6.2",
+    "vite": "^4.4.5",
+    "vue-tsc": "^2.2.0"
   }
 }

@@ -1,3 +1,3 @@
 <template src="./loading.html"></template>
 
-<script src="./Loading.component.js"></script>
+<script src="./Loading.component.ts"></script>

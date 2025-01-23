@@ -1,3 +1,3 @@
 <template src="./job_post.html"></template>
 
-<script src="./JobPost.component.js" />
+<script src="./JobPost.component.ts" />
