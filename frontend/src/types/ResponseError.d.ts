@@ -1,3 +1,0 @@
-interface ResponseError {
-    error: string;
-}
