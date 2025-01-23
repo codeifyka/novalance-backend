@@ -15,8 +15,8 @@ RUN php artisan key:generate
 RUN php artisan migrate:fresh
 RUN php artisan db:seed
 
-ENV PORT 4173 
-EXPOSE 4173
+ENV PORT 8000 
+EXPOSE 8000
 
 RUN chmod +x ./scripts/start.sh
 
