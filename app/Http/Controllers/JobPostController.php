@@ -70,7 +70,7 @@ class JobPostController extends Controller
                 $category = Category::where('name', $item['name'])->first();
                     $job->categories()->attach($category->id); 
             }
-            return response()->json([$categories]);
+            return response()->json(["data" => $job]);
         }catch (ValidationException $e) {
             // Handle validation errors
             return response()->json([
