@@ -59,6 +59,7 @@ Route::group([
 });
 
 Route::group(['middleware' => 'auth:sanctum'], function(){
+    Route::get('/categories/{job_post_id}',[CategoriesController::class, 'getAllByJobPost']);
     Route::get('/categories',[CategoriesController::class, 'getAll']);
     Route::get('/getAll2',[ServicesController::class, 'getAll2']);
     Route::resource('job', JobPostController::class);
