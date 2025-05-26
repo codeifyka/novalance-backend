@@ -21,6 +21,7 @@ class UserController extends Controller
                 ],
                 "services" => auth('api')->user()->services->count(),
                 "projects" => auth('api')->user()->projects->count(),
+                "proposals" => auth('api')->user()->proposals->count(),
             ],
         ]);
     }
