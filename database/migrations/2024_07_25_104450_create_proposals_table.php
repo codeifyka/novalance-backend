@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('proposals', function (Blueprint $table) {
             $table->id();
             $table->text('cover_letter');
+            $table->integer('bid');
+            $table->enum('duration', ['more than 6 months', '3 to 6 months', '1 to 3 months','less than 1 month'])->default('pending');
             $table->unsignedBigInteger('freelancer_id');
             $table->unsignedBigInteger('job_post_id');
             $table->enum('status', ['pending', 'active', 'done'])->default('pending');

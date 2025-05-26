@@ -22,9 +22,9 @@ class Proposal extends Model
         'started_at', 'ends_at'
     ];
 
-    public function user()
+    public function freelancer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, "freelancer_id");
     }
 
     public function job_post()

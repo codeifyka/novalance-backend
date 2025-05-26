@@ -86,4 +86,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Project::class);
     }
+
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class, "freelancer_id");
+    }
 }
