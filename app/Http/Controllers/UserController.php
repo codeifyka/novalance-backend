@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -22,6 +24,7 @@ class UserController extends Controller
                     "country" => auth('api')->user()->country,
                     "gender" => auth('api')->user()->gender,
                     "telephone" => auth('api')->user()->telephone,
+                    "profile_picture" => auth('api')->user()->profile_picture,
                 ],
                 "services" => auth('api')->user()->services->count(),
                 "projects" => auth('api')->user()->projects->count(),
@@ -31,62 +34,136 @@ class UserController extends Controller
     }
 
     public function updateInfo(Request $request)
-    {        
-        $users = User::query()->where('username','=',$request['username'])->get();
-        if(count($users) > 0 && $request['username'] != auth('api')->user()->username){
+    {
+        $currentUser = auth('api')->user();
+        if (!$currentUser) {
             return response()->json([
-                "error" => "Username already in use"
-            ]);
+                "error" => "Unauthorized"
+            ], 401);
         }
 
-        if(count($users) > 0 && $request['first_name'] != auth('api')->user()->first_name){
-            return response()->json([
-                "error" => "First Name already in use"
-            ]);
-        }
-        
-        if(count($users) > 0 && $request['last_name'] != auth('api')->user()->last_name){
-            return response()->json([
-                "error" => "Last Name already in use"
-            ]);
-        }
-
-        if(count($users) > 0 && $request['country'] != auth('api')->user()->country){
-            return response()->json([
-                "error" => "Country Name already in use"
-            ]);
+        if ($request->filled('username') && $request['username'] != $currentUser->username) {
+            $usernameExists = User::query()
+                ->where('username', '=', $request['username'])
+                ->where('id', '!=', $currentUser->id)
+                ->exists();
+            if ($usernameExists) {
+                return response()->json([
+                    "error" => "Username already in use",
+                    "field" => "username",
+                ]);
+            }
         }
 
-        if(count($users) > 0 && $request['telephone'] != auth('api')->user()->telephone){
-            return response()->json([
-                "error" => "Telephone Name already in use"
-            ]);
+        if ($request->filled('email') && $request['email'] != $currentUser->email) {
+            $emailExists = User::query()
+                ->where('email', '=', $request['email'])
+                ->where('id', '!=', $currentUser->id)
+                ->exists();
+            if ($emailExists) {
+                return response()->json([
+                    "error" => "Email already in use",
+                    "field" => "email",
+                ]);
+            }
         }
 
-        if(count($users) > 0 && $request['gender'] != auth('api')->user()->gender){
-            return response()->json([
-                "error" => "Gender Name already in use"
-            ]);
-        }
-
-        if(count($users) > 0 && $request['email'] != auth('api')->user()->email){
-            return response()->json(data: [
-                "error" => "Email Name already in use"
-            ]);
-        }
-        
-        User::query()->where('id','=', auth('api')->user()->id)->update([
-            'username' => $request['username'],
-            'first_name' => $request['first_name'],
-            'last_name' => $request['last_name'],
-            'email' => $request['email'],
-            'gender' => $request['gender'],
-            'telephone' => $request['telephone'],
-            'country' => $request['country'],
+        User::query()->where('id', '=', $currentUser->id)->update([
+            'username' => $request['username'] ?? $currentUser->username,
+            'first_name' => $request['first_name'] ?? $currentUser->first_name,
+            'last_name' => $request['last_name'] ?? $currentUser->last_name,
+            'email' => $request['email'] ?? $currentUser->email,
+            'gender' => $request['gender'] ?? $currentUser->gender,
+            'telephone' => $request['telephone'] ?? $currentUser->telephone,
+            'country' => $request['country'] ?? $currentUser->country,
+            'profile_picture' => $request['profile_picture'] ?? $currentUser->profile_picture,
         ]);
-        
+
+        $updatedUser = User::find($currentUser->id);
+
         return response()->json([
-            "data" => auth('api')->user(),
+            "data" => $updatedUser,
+        ]);
+    }
+
+    public function uploadProfilePicture(Request $request)
+    {
+        $currentUser = auth('api')->user();
+        if (!$currentUser) {
+            return response()->json(["error" => "Unauthorized"], 401);
+        }
+
+        $file = $request->file('profile_picture') ?? $request->file('image') ?? $request->file('file');
+        if (!$file) {
+            return response()->json(["error" => "No image file provided."], 422);
+        }
+
+        if (!$file->isValid()) {
+            return response()->json(["error" => "File upload failed: " . $file->getErrorMessage()], 422);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (!in_array($extension, $allowedExtensions)) {
+            return response()->json(["error" => "Invalid image format. Allowed formats: JPG, PNG, WEBP, GIF."], 422);
+        }
+
+        // Store file in public storage profile_pictures directory
+        $storedFilename = $file->store('profile_pictures', 'public');
+        $profilePictureUrl = '/storage/' . $storedFilename;
+
+        // Clean up previous custom uploaded picture if exists
+        if ($currentUser->profile_picture && str_starts_with($currentUser->profile_picture, '/storage/profile_pictures/')) {
+            $oldPath = str_replace('/storage/', '', $currentUser->profile_picture);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $user = User::find($currentUser->id);
+        $user->profile_picture = $profilePictureUrl;
+        $user->save();
+
+        return response()->json([
+            "data" => [
+                "profile_picture" => $profilePictureUrl,
+                "user" => $user,
+            ],
+            "message" => "Profile picture updated successfully."
+        ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $currentUser = auth('api')->user();
+        if (!$currentUser) {
+            return response()->json(["error" => "Unauthorized"], 401);
+        }
+
+        $currentPassword = $request->input('current_password');
+        $newPassword = $request->input('new_password');
+        $confirmPassword = $request->input('confirm_password') ?? $request->input('new_password_confirmation');
+
+        if (empty($currentPassword)) {
+            return response()->json(["error" => "Current password is required."], 422);
+        }
+
+        if (!Hash::check($currentPassword, $currentUser->password)) {
+            return response()->json(["error" => "Current password is incorrect."], 422);
+        }
+
+        if (empty($newPassword) || strlen($newPassword) < 6) {
+            return response()->json(["error" => "New password must be at least 6 characters."], 422);
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return response()->json(["error" => "New password and confirmation do not match."], 422);
+        }
+
+        $user = User::find($currentUser->id);
+        $user->password = $newPassword;
+        $user->save();
+
+        return response()->json([
+            "message" => "Password changed successfully."
         ]);
     }
 

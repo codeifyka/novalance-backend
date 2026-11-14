@@ -39,6 +39,8 @@ Route::group([
 ], function () {
     Route::get('/',[UserController::class, 'getInfo']);
     Route::post('/',[UserController::class, 'updateInfo']);
+    Route::post('/change-password', [UserController::class, 'changePassword']);
+    Route::post('/profile_picture', [UserController::class, 'uploadProfilePicture']);
     Route::get('/services',[ServicesController::class, 'getSelfAll']);
     Route::get('/projects',[ProjectsController::class, 'getSelfAll']);
     Route::get('/{username}/services',[ServicesController::class, 'getAll']);
@@ -86,6 +88,7 @@ Route::group([
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
 });
 

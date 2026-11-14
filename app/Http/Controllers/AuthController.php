@@ -9,7 +9,7 @@ class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
+        $this->middleware('auth:api', ['except' => ['login','register', 'resetPassword']]);
     }   
 
     public function register(RegisterRequest $request)
@@ -54,6 +54,37 @@ class AuthController extends Controller
     public function refresh()
     {
         return $this->respondWithToken(auth('api')->refresh());
+    }
+
+    public function resetPassword(\Illuminate\Http\Request $request)
+    {
+        $email = $request->input('email');
+        $password = $request->input('password');
+        $confirmPassword = $request->input('confirm_password') ?? $request->input('password_confirmation');
+
+        if (empty($email)) {
+            return response()->json(["error" => "Email is required."], 422);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(["error" => "No account found with this email."], 404);
+        }
+
+        if (empty($password) || strlen($password) < 6) {
+            return response()->json(["error" => "Password must be at least 6 characters."], 422);
+        }
+
+        if ($password !== $confirmPassword) {
+            return response()->json(["error" => "Passwords do not match."], 422);
+        }
+
+        $user->password = $password;
+        $user->save();
+
+        return response()->json([
+            "message" => "Password reset successfully. You can now log in with your new password."
+        ]);
     }
 
     protected function respondWithToken($token)
