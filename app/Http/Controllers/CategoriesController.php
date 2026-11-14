@@ -10,7 +10,7 @@ class CategoriesController extends Controller
 {
     public function getAll(Request $request)
     {
-        $categories = Category::all();
+        $categories = Category::withCount('services')->get();
         return response()->json([
             "data" => $categories,
         ]);
