@@ -1,19 +1,28 @@
 const PORT = 8001;
 const { WebSocketServer } = require('ws');
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 
-// Create an HTTPS server
-const server = https.createServer({
-    cert: fs.readFileSync('./fullchain.pem'),
-    key: fs.readFileSync('./privkey.pem'),
-});
+// Create HTTP server for local development or HTTPS server for production
+let server;
 
-// Create a WebSocket server using the HTTPS server
+const hasCerts = fs.existsSync('./fullchain.pem') && fs.existsSync('./privkey.pem');
+
+if (process.env.NODE_ENV === 'production' && hasCerts) {
+    server = https.createServer({
+        cert: fs.readFileSync('./fullchain.pem'),
+        key: fs.readFileSync('./privkey.pem'),
+    });
+} else {
+    server = http.createServer();
+}
+
+// Create a WebSocket server
 const ws = new WebSocketServer({ server });
 
-server.listen(8001, () => {
-    console.log('WebSocket server running on wss://localhost:8001');
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`WebSocket server running on port ${PORT}`);
 });
 
 let ID = 0;
