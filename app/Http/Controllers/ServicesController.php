@@ -52,9 +52,48 @@ class ServicesController extends Controller
 
     public function getAll2(Request $request)
     {
-        $services = Service::with(['price','category','images'])->get();
+        $query = Service::with(['price', 'category', 'images']);
+
+        if ($request->filled('category_id')) {
+            $query->where('services.category_id', $request->input('category_id'));
+        }
+
+        if ($request->filled('search')) {
+            $search = '%' . strtolower($request->input('search')) . '%';
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(services.title) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(services.description) LIKE ?', [$search]);
+            });
+        }
+
+        $sort = strtolower($request->input('sort', 'newest'));
+        if ($sort === 'oldest') {
+            $query->orderBy('services.created_at', 'asc');
+        } elseif ($sort === 'best price' || $sort === 'best_price' || $sort === 'price_asc') {
+            $query->join('prices', 'services.price_id', '=', 'prices.id')
+                  ->orderBy('prices.value', 'asc')
+                  ->select('services.*');
+        } else {
+            $query->orderBy('services.created_at', 'desc');
+        }
+
+        if ($request->has('page') || $request->has('per_page') || $request->boolean('paginate')) {
+            $perPage = (int) $request->input('per_page', 6);
+            $paginated = $query->paginate($perPage);
+
+            return response()->json([
+                "data" => [
+                    "items" => $paginated->items(),
+                    "current_page" => $paginated->currentPage(),
+                    "last_page" => $paginated->lastPage(),
+                    "per_page" => $paginated->perPage(),
+                    "total" => $paginated->total(),
+                ]
+            ]);
+        }
+
         return response()->json([
-            "data" => $services,
+            "data" => $query->get(),
         ]);
     }
 
