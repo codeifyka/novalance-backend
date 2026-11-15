@@ -13,10 +13,16 @@ class Chat extends Model
         'freelancer_id',
         'client_id',
         'job_post_id',
+        'service_id',
         'start_date',
         'end_date',
         'isRead',
     ];
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class, 'service_id');
+    }
 
     public function freelancer()
     {

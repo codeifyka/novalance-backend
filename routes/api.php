@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\PurchaseController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -116,3 +117,16 @@ Route::group(
         Route::post('/setExpiryDate', [ChatController::class, 'setExpiryDate']);
     }
 );
+
+Route::group(
+    [
+        'prefix' => 'purchases',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/', [PurchaseController::class, 'index']);
+        Route::post('/', [PurchaseController::class, 'store']);
+        Route::get('/{id}', [PurchaseController::class, 'show']);
+    }
+);
+

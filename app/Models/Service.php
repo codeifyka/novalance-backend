@@ -35,4 +35,9 @@ class Service extends Model
     {
         return $this->hasMany(ServiceImage::class);
     }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
+    }
 }
