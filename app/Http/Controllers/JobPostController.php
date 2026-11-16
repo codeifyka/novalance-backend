@@ -143,49 +143,76 @@ class JobPostController extends Controller
     public function update(Request $request, string $id)
     {
         try {
+            $JobPost_update = JobPost::findOrFail($id);
+
+            $user = auth('api')->user();
+            if ($user && $JobPost_update->user_id !== $user->id) {
+                return response()->json(['error' => 'Unauthorized to update this job post'], 403);
+            }
+
+            // Normalize skills input (supports string array, object array like [{name: '...'}], IDs, or JSON string)
+            $rawSkills = $request->input('skills', []);
+            if (is_string($rawSkills)) {
+                $rawSkills = json_decode($rawSkills, true) ?? [];
+            }
+            if (is_array($rawSkills)) {
+                $rawSkills = array_values(array_filter(array_map(function ($item) {
+                    if (is_array($item)) {
+                        return $item['name'] ?? ($item['id'] ?? null);
+                    }
+                    return $item;
+                }, $rawSkills)));
+                $request->merge(['skills' => $rawSkills]);
+            }
+
             // Validate the request
             $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'expected_delivery_time' => 'required|integer',
+                'expected_delivery_time' => 'required',
                 'budjet' => 'required|integer',
                 'size' => 'required',
                 'level' => 'required',
-                'skills' => 'required|array', // Skills must be an array
-                'skills.*' => 'exists:categories,name', // Validate each skill is a valid category
+                'skills' => 'required|array|min:1',
             ]);
-    
-            // Find the JobPost to update
-            $JobPost_update = JobPost::findOrFail($id);
-    
             // Update the fields
             $JobPost_update->title = strip_tags($request->input('title'));
             $JobPost_update->description = strip_tags($request->input('description'));
             $JobPost_update->size = strip_tags($request->input('size'));
             $JobPost_update->experience_level = strip_tags($request->input('level'));
-            $JobPost_update->expected_delivery_time = strip_tags($request->input('expected_delivery_time'));
-            $JobPost_update->budjet = strip_tags($request->input('budjet'));
-    
+            $JobPost_update->expected_delivery_time = (int) strip_tags($request->input('expected_delivery_time'));
+            $JobPost_update->budjet = (int) strip_tags($request->input('budjet'));
             // Process skills (category_ids) and associate with the job post
-            $category_ids = Category::whereIn('name', $request->input('skills'))->pluck('id')->toArray();
-    
+            $category_ids = Category::whereIn('name', $rawSkills)
+                ->orWhereIn('id', array_filter($rawSkills, 'is_numeric'))
+                ->pluck('id')
+                ->toArray();
+
             if (empty($category_ids)) {
                 return response()->json([
-                    'error' => 'No valid categories found for the provided skills',
-                ], 404);
+                    'error' => 'Validation failed',
+                    'messages' => [
+                        'skills' => ['Please select at least one valid skill/category.'],
+                    ],
+                ], 422);
             }
-    
+
             // Attach the skills (categories) to the JobPost (using sync for many-to-many relationship)
             $JobPost_update->categories()->sync($category_ids);
-    
+
             // Update illustrative files if provided
-            $JobPost_update->illustrative_files = strip_tags($request->input('illustrative_files')) ?? 'file.pdf';
-    
+            if ($request->has('illustrative_files') && $request->input('illustrative_files')) {
+                $JobPost_update->illustrative_files = strip_tags($request->input('illustrative_files'));
+            } elseif ($request->has('files') && is_string($request->input('files'))) {
+                $JobPost_update->illustrative_files = strip_tags($request->input('files'));
+            }
+
             // Save the updated JobPost
             $JobPost_update->save();
-    
+            $JobPost_update->load('categories');
+
             return response()->json(['data' => $JobPost_update]);
-    
+
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
