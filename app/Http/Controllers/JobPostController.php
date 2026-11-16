@@ -71,39 +71,56 @@ class JobPostController extends Controller
     public function store(Request $request)
     {
         try {
-            $file = $request->file('files');
-            $file_name = time().'_'.'file'.'_'.$file->getClientOriginalName();
-            $file->move('uploads/job_files', $file_name);
-            $file = 'uploads/illustrative_files/'.$file_name;
+            $filePath = null;
+            if ($request->hasFile('files')) {
+                $file = $request->file('files');
+                $file_name = time().'_file_'.$file->getClientOriginalName();
+                $file->move(public_path('uploads/job_files'), $file_name);
+                $filePath = 'uploads/job_files/'.$file_name;
+            }
+
             $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'expected_delivery_time' => 'required|integer'  ,
-                'budjet' =>'required|integer' ,
-                'size' =>'required' ,
-                'level' =>'required' ,
-                'skills' =>'required' ,
+                'expected_delivery_time' => 'required',
+                'budjet' => 'required|integer',
+                'size' => 'required',
+                'level' => 'required',
+                'skills' => 'required',
             ]);
+
             $user = auth('api')->user(); 
-            $job = new JobPost() ; 
-            $job->title = strip_tags( $request->input('title'));
-            $job->description = strip_tags( $request->input('description'));
-            $job->size = strip_tags( $request->input('size'));
-            $job->experience_level = strip_tags( $request->input('level'));
+            $job = new JobPost(); 
+            $job->title = strip_tags($request->input('title'));
+            $job->description = strip_tags($request->input('description'));
+            $job->size = strip_tags($request->input('size'));
+            $job->experience_level = strip_tags($request->input('level'));
             $job->user_id = $user->id;
-            $job->expected_delivery_time = strip_tags( $request->input('expected_delivery_time'));
-            $job->budjet = strip_tags( $request->input('budjet'));
-            if($file){
-                $job->illustrative_files = $file;
-            }  
+            $job->expected_delivery_time = (int) strip_tags($request->input('expected_delivery_time'));
+            $job->budjet = (int) strip_tags($request->input('budjet'));
+            $job->illustrative_files = $filePath ?? '';
             $job->save(); 
-            $categories = json_decode($request->skills, true);
-            foreach ($categories as $item) {
-                $category = Category::where('name', $item['name'])->first();
-                    $job->categories()->attach($category->id); 
+
+            $rawSkills = $request->input('skills');
+            if (is_string($rawSkills)) {
+                $rawSkills = json_decode($rawSkills, true) ?? [];
             }
+            if (is_array($rawSkills)) {
+                $skillNames = array_values(array_filter(array_map(function ($item) {
+                    return is_array($item) ? ($item['name'] ?? null) : $item;
+                }, $rawSkills)));
+
+                $category_ids = Category::whereIn('name', $skillNames)
+                    ->orWhereIn('id', array_filter($skillNames, 'is_numeric'))
+                    ->pluck('id')
+                    ->toArray();
+
+                $job->categories()->sync($category_ids);
+            }
+
+            $job->load('categories');
             return response()->json(["data" => $job]);
-        }catch (ValidationException $e) {
+        } catch (ValidationException $e) {
             // Handle validation errors
             return response()->json([
                 'error' => 'Validation failed',
@@ -201,7 +218,12 @@ class JobPostController extends Controller
             $JobPost_update->categories()->sync($category_ids);
 
             // Update illustrative files if provided
-            if ($request->has('illustrative_files') && $request->input('illustrative_files')) {
+            if ($request->hasFile('files')) {
+                $file = $request->file('files');
+                $file_name = time().'_file_'.$file->getClientOriginalName();
+                $file->move(public_path('uploads/job_files'), $file_name);
+                $JobPost_update->illustrative_files = 'uploads/job_files/'.$file_name;
+            } elseif ($request->has('illustrative_files') && $request->input('illustrative_files')) {
                 $JobPost_update->illustrative_files = strip_tags($request->input('illustrative_files'));
             } elseif ($request->has('files') && is_string($request->input('files'))) {
                 $JobPost_update->illustrative_files = strip_tags($request->input('files'));
