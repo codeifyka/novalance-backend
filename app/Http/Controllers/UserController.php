@@ -169,7 +169,7 @@ class UserController extends Controller
 
     public function getAllJobs()
     {
-        $jobs = JobPost::with('categories')->get();
+        $jobs = JobPost::with('categories')->withCount('proposals')->latest()->get();
     
         return response()->json(['data' => $jobs]);
     }

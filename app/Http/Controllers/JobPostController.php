@@ -7,6 +7,7 @@ use App\Models\JobPost;
 use App\Models\Category;
 use App\Models\Job_post;
 use App\Models\jobPostFiles;
+use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -19,10 +20,41 @@ class JobPostController extends Controller
     public function index()
     {
         $user = auth('api')->user();
-        $Jobs = JobPost::with(['categories'])->where('user_id', $user->id)->get();
-        return response()->json(['data'=>$Jobs]);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
+        $jobs = JobPost::with(['categories'])
+            ->withCount([
+                'proposals',
+                'proposals as pending_proposals_count' => function ($q) {
+                    $q->where('status', 'pending');
+                },
+                'proposals as active_proposals_count' => function ($q) {
+                    $q->where('status', 'active');
+                }
+            ])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
 
+        $jobIds = $jobs->pluck('id');
+        $activeJobsCount = $jobs->count();
+        $newProposalsCount = Proposal::whereIn('job_post_id', $jobIds)
+            ->where('status', 'pending')
+            ->count();
+        $hiringCount = Proposal::whereIn('job_post_id', $jobIds)
+            ->where('status', 'active')
+            ->count();
+
+        return response()->json([
+            'data' => $jobs,
+            'activity' => [
+                'active_jobs' => $activeJobsCount,
+                'new_proposals' => $newProposalsCount,
+                'hiring' => $hiringCount,
+            ]
+        ]);
     }
 
     /**
@@ -85,10 +117,16 @@ class JobPostController extends Controller
      */
     public function show(string $id)
     {
-        // $JobPost = JobPost::findOrFail($id);
-        $JobPost = JobPost::with(['categories'])->findOrFail($id);
+        $JobPost = JobPost::with(['categories'])
+            ->withCount([
+                'proposals',
+                'proposals as active_proposals_count' => function ($q) {
+                    $q->where('status', 'active');
+                }
+            ])
+            ->findOrFail($id);
 
-        return response()->json(['data'=>$JobPost]);
+        return response()->json(['data' => $JobPost]);
     }
 
     /**
