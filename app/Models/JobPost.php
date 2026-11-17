@@ -32,4 +32,13 @@ class JobPost extends Model
         return $this->hasMany(Proposal::class, 'job_post_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_jobs', 'job_post_id', 'user_id')->withTimestamps();
+    }
 }

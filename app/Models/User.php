@@ -99,4 +99,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Purchase::class, "client_id");
     }
+
+    public function jobPosts(): HasMany
+    {
+        return $this->hasMany(JobPost::class, 'user_id');
+    }
+
+    public function savedJobs(): HasMany
+    {
+        return $this->hasMany(SavedJob::class, 'user_id');
+    }
+
+    public function savedJobPosts()
+    {
+        return $this->belongsToMany(JobPost::class, 'saved_jobs', 'user_id', 'job_post_id')->withTimestamps();
+    }
 }

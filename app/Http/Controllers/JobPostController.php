@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Job_post;
 use App\Models\jobPostFiles;
 use App\Models\Proposal;
+use App\Models\SavedJob;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -134,14 +135,29 @@ class JobPostController extends Controller
      */
     public function show(string $id)
     {
-        $JobPost = JobPost::with(['categories'])
-            ->withCount([
-                'proposals',
-                'proposals as active_proposals_count' => function ($q) {
-                    $q->where('status', 'active');
-                }
-            ])
-            ->findOrFail($id);
+        $JobPost = JobPost::with([
+            'categories',
+            'user' => function ($query) {
+                $query->select('id', 'username', 'first_name', 'last_name', 'country', 'profile_picture', 'created_at')
+                      ->withCount('jobPosts');
+            }
+        ])
+        ->withCount([
+            'proposals',
+            'proposals as active_proposals_count' => function ($q) {
+                $q->where('status', 'active');
+            }
+        ])
+        ->findOrFail($id);
+
+        $currentUser = auth('api')->user() ?: request()->user();
+        $isSaved = false;
+        if ($currentUser) {
+            $isSaved = SavedJob::where('user_id', $currentUser->id)
+                ->where('job_post_id', $id)
+                ->exists();
+        }
+        $JobPost->is_saved = $isSaved;
 
         return response()->json(['data' => $JobPost]);
     }

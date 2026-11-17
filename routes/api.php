@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SavedJobController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -129,4 +130,17 @@ Route::group(
         Route::get('/{id}', [PurchaseController::class, 'show']);
     }
 );
+
+Route::group(
+    [
+        'prefix' => 'saved-jobs',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/', [SavedJobController::class, 'index']);
+        Route::post('/toggle/{jobPostId}', [SavedJobController::class, 'toggle']);
+        Route::get('/check/{jobPostId}', [SavedJobController::class, 'check']);
+    }
+);
+
 
