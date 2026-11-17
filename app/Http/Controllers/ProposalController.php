@@ -13,13 +13,29 @@ class ProposalController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
         $validated = $request->validate([
             'job_post_id' => 'required|exists:job_posts,id',
-            'cover_letter' => 'required',
+            'cover_letter' => 'required|string',
+            'bid' => 'required|numeric|min:1',
+            'duration' => 'nullable|string',
         ]);
         $validated['freelancer_id'] = $user->id;
+        $validated['status'] = 'pending';
+
+        // If proposal already exists for this job, update it; otherwise create
+        $existing = Proposal::where('job_post_id', $validated['job_post_id'])
+            ->where('freelancer_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            $existing->update($validated);
+            return response()->json($existing, 200);
+        }
 
         $proposal = Proposal::create($validated);
         return response()->json($proposal, 201);
@@ -27,7 +43,10 @@ class ProposalController extends Controller
     
     public function getByJobPostAndFreelancer($jobPostId): JsonResponse
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user() ?: request()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
         $proposal = Proposal::where('job_post_id', $jobPostId)
             ->where('freelancer_id', $user->id)
             ->first();
@@ -39,9 +58,12 @@ class ProposalController extends Controller
         }
     }
 
-    public function getMyProposals():JsonResponse
+    public function getMyProposals(): JsonResponse
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user() ?: request()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
         // Get job posts created by the authenticated user
         $jobPosts = JobPost::where('user_id', $user->id)->pluck('id');
@@ -54,7 +76,10 @@ class ProposalController extends Controller
 
     public function acceptProposal($id): JsonResponse
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user() ?: request()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
         // Find the proposal
         $proposal = Proposal::where('id', $id)
@@ -84,7 +109,10 @@ class ProposalController extends Controller
 
     public function getFreelancerProposals(): JsonResponse
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user() ?: request()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
 
         // Get proposals for the job posts
         $proposals = Proposal::where('freelancer_id', $user->id)->get();
