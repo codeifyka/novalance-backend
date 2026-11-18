@@ -79,6 +79,9 @@ Route::group([  'prefix' => 'projects',
     Route::post('upload_images',[FilesUploadController::class, 'uploadServicesImages']);
     Route::post('create',[ProjectsController::class, 'create']);
     Route::get('{id}',[ProjectsController::class, 'getById']);
+    Route::put('{id}',[ProjectsController::class, 'update']);
+    Route::post('{id}',[ProjectsController::class, 'update']);
+    Route::delete('{id}',[ProjectsController::class, 'destroy']);
 });
 
 Route::group([
