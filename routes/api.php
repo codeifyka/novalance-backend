@@ -59,6 +59,9 @@ Route::group([
     Route::post('upload_images',[FilesUploadController::class, 'uploadServicesImages']);
     Route::post('create',[ServicesController::class, 'create']);
     Route::get('{id}',[ServicesController::class, 'getById']);
+    Route::put('{id}',[ServicesController::class, 'update']);
+    Route::post('{id}',[ServicesController::class, 'update']);
+    Route::delete('{id}',[ServicesController::class, 'destroy']);
     Route::get('search/{title}',[ServicesController::class, 'searchByTitle']);
 });
 

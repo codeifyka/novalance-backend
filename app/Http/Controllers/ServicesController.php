@@ -146,4 +146,120 @@ class ServicesController extends Controller
         ]);
     }
 
+    public function update(Request $request, $id)
+    {
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $service = Service::with(['price', 'category', 'images'])->find($id);
+        if (!$service) {
+            return response()->json(['error' => 'Service not found'], 404);
+        }
+
+        if ($service->user_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized to edit this service'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category' => 'required|string',
+            'price' => 'required|numeric|min:1',
+            'images' => 'nullable|array',
+        ]);
+
+        $category = Category::where('name', $validated['category'])
+            ->orWhere('id', is_numeric($validated['category']) ? $validated['category'] : 0)
+            ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category does not exist.'], 422);
+        }
+
+        // Update Price
+        if ($service->price) {
+            $service->price->update(['value' => $validated['price']]);
+        } else {
+            $price = Price::create([
+                'value' => $validated['price'],
+                'currency_code' => 'USD',
+                'currency_symbol' => '$'
+            ]);
+            $service->price_id = $price->id;
+        }
+
+        // Update Service
+        $service->title = $validated['title'];
+        $service->description = $validated['description'];
+        $service->category_id = $category->id;
+        $service->save();
+
+        // Update Images if provided
+        if (isset($validated['images']) && is_array($validated['images'])) {
+            ServiceImage::where('service_id', $service->id)->delete();
+
+            foreach ($validated['images'] as $img) {
+                $path = is_array($img) ? ($img['path'] ?? $img['url'] ?? '') : $img;
+                $cleanPath = preg_replace('#^https?://[^/]+/storage/#', '', $path);
+                $cleanPath = preg_replace('#^/storage/#', '', $cleanPath);
+                $cleanPath = ltrim($cleanPath, '/');
+
+                if (!empty($cleanPath)) {
+                    ServiceImage::create([
+                        'path' => $cleanPath,
+                        'service_id' => $service->id,
+                    ]);
+                }
+            }
+        }
+
+        $service->load(['price', 'category', 'images']);
+
+        return response()->json([
+            'data' => $service,
+            'message' => 'Service updated successfully'
+        ], 200);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $service = Service::with('price')->find($id);
+        if (!$service) {
+            return response()->json(['error' => 'Service not found'], 404);
+        }
+
+        if ($service->user_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized to delete this service'], 403);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($service) {
+            $price = $service->price;
+
+            ServiceImage::where('service_id', $service->id)->delete();
+
+            $service->delete();
+
+            if ($price) {
+                $priceStillReferenced = Service::where('price_id', $price->id)->exists();
+                if (!$priceStillReferenced) {
+                    try {
+                        $price->delete();
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning("Could not delete orphan price {$price->id}: " . $e->getMessage());
+                    }
+                }
+            }
+        });
+
+        return response()->json([
+            'message' => 'Service deleted successfully'
+        ], 200);
+    }
 }
