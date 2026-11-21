@@ -6,6 +6,7 @@ use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\JobPost;
+use App\Notifications\NewProposalNotification;
 use Illuminate\Support\Facades\App;
 
 class ProposalController extends Controller
@@ -34,10 +35,32 @@ class ProposalController extends Controller
 
         if ($existing) {
             $existing->update($validated);
+
+            // Notify job owner of updated proposal
+            $jobPost = JobPost::with('user')->find($validated['job_post_id']);
+            if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id) {
+                try {
+                    $jobPost->user->notify(new NewProposalNotification($existing, $jobPost, $user));
+                } catch (\Throwable $e) {
+                    \Log::error('Failed to send NewProposalNotification: ' . $e->getMessage());
+                }
+            }
+
             return response()->json($existing, 200);
         }
 
         $proposal = Proposal::create($validated);
+
+        // Notify job owner of new proposal
+        $jobPost = JobPost::with('user')->find($validated['job_post_id']);
+        if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id) {
+            try {
+                $jobPost->user->notify(new NewProposalNotification($proposal, $jobPost, $user));
+            } catch (\Throwable $e) {
+                \Log::error('Failed to send NewProposalNotification: ' . $e->getMessage());
+            }
+        }
+
         return response()->json($proposal, 201);
     }
     

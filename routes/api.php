@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SavedJobController;
+use App\Http\Controllers\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -146,6 +147,19 @@ Route::group(
         Route::get('/', [SavedJobController::class, 'index']);
         Route::post('/toggle/{jobPostId}', [SavedJobController::class, 'toggle']);
         Route::get('/check/{jobPostId}', [SavedJobController::class, 'check']);
+    }
+);
+
+Route::group(
+    [
+        'prefix' => 'notifications',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
     }
 );
 

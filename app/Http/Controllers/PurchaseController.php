@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Chat;
 use App\Models\Purchase;
 use App\Models\Service;
+use App\Notifications\ServicePurchasedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -43,7 +44,7 @@ class PurchaseController extends Controller
             'service_id' => 'required|exists:services,id',
         ]);
 
-        $service = Service::with('price')->findOrFail($validated['service_id']);
+        $service = Service::with(['price', 'user'])->findOrFail($validated['service_id']);
 
         if ($service->user_id === $user->id) {
             return response()->json(['error' => 'You cannot purchase your own service.'], 400);
@@ -58,6 +59,15 @@ class PurchaseController extends Controller
             'price' => $price,
             'status' => 'active',
         ]);
+
+        // Notify freelancer that their service was purchased
+        if ($service->user) {
+            try {
+                $service->user->notify(new ServicePurchasedNotification($purchase, $service, $user));
+            } catch (\Throwable $e) {
+                \Log::error('Failed to send ServicePurchasedNotification: ' . $e->getMessage());
+            }
+        }
 
         // Find or create chat between client and freelancer for seamless communication
         $chat = Chat::where('client_id', $user->id)
