@@ -167,11 +167,39 @@ class UserController extends Controller
         ]);
     }
 
-    public function getAllJobs()
+    public function getAllJobs(Request $request)
     {
-        $jobs = JobPost::with('categories')->withCount('proposals')->latest()->get();
-    
-        return response()->json(['data' => $jobs]);
+        $query = JobPost::with('categories')->withCount('proposals');
+
+        if ($request->filled('search')) {
+            $search = '%' . strtolower($request->input('search')) . '%';
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(job_posts.title) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(job_posts.description) LIKE ?', [$search])
+                  ->orWhereHas('categories', function ($categoryQuery) use ($search) {
+                      $categoryQuery->whereRaw('LOWER(categories.name) LIKE ?', [$search]);
+                  });
+            });
+        }
+
+        $query->latest();
+
+        if ($request->has('page') || $request->has('per_page') || $request->boolean('paginate')) {
+            $perPage = (int) $request->input('per_page', 6);
+            $paginated = $query->paginate($perPage);
+
+            return response()->json([
+                'data' => [
+                    'items' => $paginated->items(),
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ]
+            ]);
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     public function getUserById($user_id)
