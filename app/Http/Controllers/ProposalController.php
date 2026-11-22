@@ -46,7 +46,7 @@ class ProposalController extends Controller
                 }
             }
 
-            return response()->json($existing, 200);
+            return response()->json(['data' => $existing], 200);
         }
 
         $proposal = Proposal::create($validated);
@@ -61,7 +61,7 @@ class ProposalController extends Controller
             }
         }
 
-        return response()->json($proposal, 201);
+        return response()->json(['data' => $proposal], 201);
     }
     
     public function getByJobPostAndFreelancer($jobPostId): JsonResponse
@@ -75,9 +75,9 @@ class ProposalController extends Controller
             ->first();
 
         if ($proposal) {
-            return response()->json($proposal, 200);
+            return response()->json(['data' => $proposal], 200);
         } else {
-            return response()->json(['message' => 'Proposal not found'], 404);
+            return response()->json(['error' => 'Proposal not found'], 404);
         }
     }
 
@@ -94,7 +94,7 @@ class ProposalController extends Controller
         // Get proposals for the job posts
         $proposals = Proposal::whereIn('job_post_id', $jobPosts)->get();
 
-        return response()->json($proposals, 200);
+        return response()->json(['data' => $proposals], 200);
     }
 
     public function acceptProposal($id): JsonResponse
@@ -118,7 +118,10 @@ class ProposalController extends Controller
                 'freelancer_id' => $proposal->freelancer_id,
                 'client_id' => $user->id,
                 'job_post_id' => $proposal->job_post_id,
-                'started_at' => $proposal->started_at,
+                'chattable_type' => JobPost::class,
+                'chattable_id' => $proposal->job_post_id,
+                'tag' => 'job_post',
+                'start_date' => $proposal->started_at,
             ];
             $chatController = App::make(ChatController::class);
             $newChat = $chatController->store(new Request($chatData));
@@ -139,7 +142,7 @@ class ProposalController extends Controller
 
         // Get proposals for the job posts
         $proposals = Proposal::where('freelancer_id', $user->id)->get();
-        
-        return response()->json($proposals, 200);
+
+        return response()->json(['data' => $proposals], 200);
     }
 }

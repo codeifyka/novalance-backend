@@ -120,6 +120,7 @@ Route::group(
     ],
     function () {
         Route::get('/getAll', [ChatController::class, 'index']);
+        Route::post('/getOrCreate', [ChatController::class, 'getOrCreate']);
         Route::post('/storeMessage', [ChatController::class, 'storeMessage']);
         Route::post('/getAllMessages', [ChatController::class, 'getAllMessages']);
         Route::post('/setExpiryDate', [ChatController::class, 'setExpiryDate']);

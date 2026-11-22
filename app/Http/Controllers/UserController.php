@@ -182,6 +182,10 @@ class UserController extends Controller
             });
         }
 
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
         $query->latest();
 
         if ($request->has('page') || $request->has('per_page') || $request->boolean('paginate')) {
