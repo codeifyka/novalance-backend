@@ -14,6 +14,10 @@ use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SavedJobController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WalletController;
+use App\Http\Controllers\DisputeController;
+use App\Http\Controllers\Admin\AdminDisputeController;
+use App\Http\Controllers\Admin\AdminPayoutController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -110,6 +114,7 @@ Route::group(
         Route::get('/getFreelancerProposals', [ProposalController::class, 'getFreelancerProposals']);
         Route::get('/{job_post_id}', [ProposalController::class, 'getByJobPostAndFreelancer']);
         Route::put('{id}/accept', [ProposalController::class, 'acceptProposal']);
+        Route::put('{id}/complete', [ProposalController::class, 'completeProposal']);
     }
 );
 
@@ -161,6 +166,47 @@ Route::group(
         Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    }
+);
+
+Route::group(
+    [
+        'prefix' => 'wallet',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/', [WalletController::class, 'getMyWallet']);
+        Route::post('/deposit/intent', [WalletController::class, 'depositIntent']);
+        Route::post('/deposit/confirm', [WalletController::class, 'confirmDeposit']);
+        Route::post('/payout-request', [WalletController::class, 'requestPayout']);
+    }
+);
+
+Route::group(
+    [
+        'prefix' => 'disputes',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/', [DisputeController::class, 'index']);
+        Route::post('/{proposalId}', [DisputeController::class, 'store']);
+    }
+);
+
+Route::group(
+    [
+        'prefix' => 'admin',
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('/disputes', [AdminDisputeController::class, 'index']);
+        Route::get('/disputes/{id}', [AdminDisputeController::class, 'show']);
+        Route::post('/disputes/{id}/resolve', [AdminDisputeController::class, 'resolve']);
+        Route::post('/proposals/{id}/fail', [ProposalController::class, 'setFailed']);
+
+        Route::get('/payouts', [AdminPayoutController::class, 'index']);
+        Route::post('/payouts/{id}/process', [AdminPayoutController::class, 'process']);
+        Route::post('/payouts/{id}/reject', [AdminPayoutController::class, 'reject']);
     }
 );
 

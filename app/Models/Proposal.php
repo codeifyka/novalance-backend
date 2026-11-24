@@ -20,8 +20,14 @@ class Proposal extends Model
         'ends_at'
     ];
 
-    protected $dates = [
-        'started_at', 'ends_at'
+    protected $casts = [
+        'started_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'bid' => 'decimal:2',
+    ];
+
+    protected $appends = [
+        'can_dispute',
     ];
 
     public function freelancer()
@@ -32,5 +38,22 @@ class Proposal extends Model
     public function job_post()
     {
         return $this->belongsTo(JobPost::class);
+    }
+
+    public function dispute()
+    {
+        return $this->hasOne(Dispute::class);
+    }
+
+    public function transactions()
+    {
+        return $this->morphMany(WalletTransaction::class, 'source');
+    }
+
+    public function getCanDisputeAttribute(): bool
+    {
+        return $this->status === 'active' 
+            && $this->ends_at 
+            && now()->greaterThanOrEqualTo($this->ends_at);
     }
 }

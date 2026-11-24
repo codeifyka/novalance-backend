@@ -16,17 +16,27 @@ class ChatController extends Controller
         $account = auth('api')->user()->account_type;
         $relations = ['lastMessage', 'chattable', 'jobPost', 'service'];
 
+        $query = Chat::query();
+
         if ($account === 'client') {
-            $chats = Chat::where('client_id', $userId)
-                ->with(array_merge(['freelancer'], $relations))
-                ->latest('updated_at')
-                ->get();
+            $query->where('client_id', $userId)
+                ->with(array_merge(['freelancer'], $relations));
         } else {
-            $chats = Chat::where('freelancer_id', $userId)
-                ->with(array_merge(['client'], $relations))
-                ->latest('updated_at')
-                ->get();
+            $query->where('freelancer_id', $userId)
+                ->with(array_merge(['client'], $relations));
         }
+
+        // Automatically remove discussion from chat list if temporary_removed is enabled and end_date has passed
+        if (!$request->boolean('include_expired')) {
+            $query->where(function ($q) {
+                $q->where('temporary_removed', false)
+                  ->orWhereNull('temporary_removed')
+                  ->orWhereNull('end_date')
+                  ->orWhere('end_date', '>=', now());
+            });
+        }
+
+        $chats = $query->latest('updated_at')->get();
 
         return response()->json(["data" => $chats]);
     }
@@ -131,12 +141,22 @@ class ChatController extends Controller
         $request->validate([
             'end_date' => 'required|date',
             'chat_id' => 'required',
+            'temporary_removed' => 'nullable|boolean',
         ]);
         $chat = Chat::where('id', $request->chat_id)->first();
     
         if ($chat) {
             $chat->end_date = $request->end_date;
+            if ($request->has('temporary_removed')) {
+                $chat->temporary_removed = $request->boolean('temporary_removed');
+            }
             if ($chat->save()) {
+                if ($chat->job_post_id) {
+                    \App\Models\Proposal::where('job_post_id', $chat->job_post_id)
+                        ->where('freelancer_id', $chat->freelancer_id)
+                        ->where('status', 'active')
+                        ->update(['ends_at' => $request->end_date]);
+                }
                 return response()->json(["data" => $chat]);
             } else {
                 return response()->json(["error" => "Failed to save end date."], 500);

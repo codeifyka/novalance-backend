@@ -19,13 +19,24 @@ class Chat extends Model
         'tag',
         'start_date',
         'end_date',
+        'temporary_removed',
         'isRead',
+    ];
+
+    protected $casts = [
+        'temporary_removed' => 'boolean',
     ];
 
     protected $appends = [
         'chat_tag',
         'chattable_title',
+        'is_expired',
     ];
+
+    public function getIsExpiredAttribute(): bool
+    {
+        return $this->end_date ? now()->greaterThan($this->end_date) : false;
+    }
 
     public function chattable()
     {

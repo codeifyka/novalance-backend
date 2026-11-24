@@ -31,4 +31,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'payment' => [
+        'default' => env('PAYMENT_GATEWAY', 'stripe'),
+    ],
+
+    'stripe' => [
+        'key' => env('STRIPE_KEY', 'pk_test_placeholder'),
+        'secret' => env('STRIPE_SECRET', 'sk_test_placeholder'),
+    ],
+
 ];
