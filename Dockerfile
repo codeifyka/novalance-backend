@@ -20,13 +20,8 @@ RUN echo "upload_max_filesize = 64M\npost_max_size = 64M\nmemory_limit = 256M" >
 
 WORKDIR /app
 COPY . /app
-COPY .env.example /app/.env
 
 RUN composer install --no-interaction --prefer-dist
-
-RUN php artisan key:generate
-RUN php artisan migrate:fresh
-RUN php artisan db:seed
 
 ENV PORT=8000 
 EXPOSE 8000 8001 8080
