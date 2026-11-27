@@ -141,6 +141,9 @@ Route::group(
         Route::get('/', [PurchaseController::class, 'index']);
         Route::post('/', [PurchaseController::class, 'store']);
         Route::get('/{id}', [PurchaseController::class, 'show']);
+        Route::put('/{id}/complete', [PurchaseController::class, 'complete']);
+        Route::put('/{id}/deliver', [PurchaseController::class, 'deliver']);
+        Route::put('/{id}/extend', [PurchaseController::class, 'extend']);
     }
 );
 
@@ -189,6 +192,7 @@ Route::group(
     ],
     function () {
         Route::get('/', [DisputeController::class, 'index']);
+        Route::post('/purchase/{purchaseId}', [DisputeController::class, 'storeForPurchase']);
         Route::post('/{proposalId}', [DisputeController::class, 'store']);
     }
 );

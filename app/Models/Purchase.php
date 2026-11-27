@@ -16,6 +16,17 @@ class Purchase extends Model
         'service_id',
         'price',
         'status',
+        'started_at',
+        'ends_at',
+        'delivered_at',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'started_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function client(): BelongsTo
@@ -31,5 +42,10 @@ class Purchase extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class, 'service_id');
+    }
+
+    public function dispute(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Dispute::class);
     }
 }

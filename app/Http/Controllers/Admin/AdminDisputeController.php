@@ -21,7 +21,7 @@ class AdminDisputeController extends Controller
             return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
         }
 
-        $query = Dispute::with(['proposal.job_post', 'client', 'freelancer', 'resolver'])->latest();
+        $query = Dispute::with(['proposal.job_post', 'purchase.service', 'client', 'freelancer', 'resolver'])->latest();
 
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
@@ -42,21 +42,34 @@ class AdminDisputeController extends Controller
             return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
         }
 
-        $dispute = Dispute::with(['proposal.job_post', 'client', 'freelancer', 'resolver'])->find($id);
+        $dispute = Dispute::with(['proposal.job_post', 'purchase.service', 'client', 'freelancer', 'resolver'])->find($id);
         if (!$dispute) {
             return response()->json(['error' => 'Dispute not found.'], 404);
         }
 
         // Fetch associated chat and messages for dispute evidence context
-        $chat = Chat::where(function ($q) use ($dispute) {
-            $q->where('job_post_id', $dispute->proposal->job_post_id)
-              ->orWhere(function ($q2) use ($dispute) {
-                  $q2->where('chattable_id', $dispute->proposal->job_post_id)
-                     ->where('chattable_type', 'like', '%JobPost%');
-              });
-        })->with(['messages' => function ($m) {
-            $m->latest()->take(50);
-        }])->first();
+        $chat = null;
+        if ($dispute->proposal) {
+            $chat = Chat::where(function ($q) use ($dispute) {
+                $q->where('job_post_id', $dispute->proposal->job_post_id)
+                  ->orWhere(function ($q2) use ($dispute) {
+                      $q2->where('chattable_id', $dispute->proposal->job_post_id)
+                         ->where('chattable_type', 'like', '%JobPost%');
+                  });
+            })->with(['messages' => function ($m) {
+                $m->latest()->take(50);
+            }])->first();
+        } elseif ($dispute->purchase) {
+            $chat = Chat::where(function ($q) use ($dispute) {
+                $q->where('service_id', $dispute->purchase->service_id)
+                  ->orWhere(function ($q2) use ($dispute) {
+                      $q2->where('chattable_id', $dispute->purchase->service_id)
+                         ->where('chattable_type', 'like', '%Service%');
+                  });
+            })->with(['messages' => function ($m) {
+                $m->latest()->take(50);
+            }])->first();
+        }
 
         return response()->json([
             'data' => $dispute,
@@ -81,7 +94,7 @@ class AdminDisputeController extends Controller
             'admin_notes' => 'nullable|string',
         ]);
 
-        $dispute = Dispute::with(['proposal.job_post.user', 'proposal.freelancer'])->find($id);
+        $dispute = Dispute::with(['proposal.job_post.user', 'proposal.freelancer', 'purchase.service', 'purchase.client', 'purchase.freelancer'])->find($id);
         if (!$dispute) {
             return response()->json(['error' => 'Dispute not found.'], 404);
         }
@@ -90,35 +103,65 @@ class AdminDisputeController extends Controller
             return response()->json(['error' => 'This dispute has already been resolved.'], 400);
         }
 
-        $proposal = $dispute->proposal;
         $walletService = app(WalletService::class);
-        $bidAmount = (float) $proposal->bid;
         $type = $request->resolution_type;
         $notes = $request->admin_notes ?: 'Resolved by administrator.';
 
         try {
-            if ($type === 'full_refund') {
-                $walletService->refundEscrow($proposal, $bidAmount, 0.0, $notes);
-                $dispute->status = 'resolved_refund_client';
-                $dispute->client_refund_amount = $bidAmount;
-                $dispute->freelancer_amount = 0.00;
-            } elseif ($type === 'partial_refund') {
-                $clientAmount = (float) $request->client_refund_amount;
-                $freelancerAmount = (float) $request->freelancer_amount;
+            if ($dispute->proposal) {
+                $proposal = $dispute->proposal;
+                $bidAmount = (float) $proposal->bid;
 
-                if (round($clientAmount + $freelancerAmount, 2) > $bidAmount) {
-                    return response()->json(['error' => "Total split (\${$clientAmount} + \${$freelancerAmount}) exceeds bid (\${$bidAmount})."], 422);
+                if ($type === 'full_refund') {
+                    $walletService->refundEscrow($proposal, $bidAmount, 0.0, $notes);
+                    $dispute->status = 'resolved_refund_client';
+                    $dispute->client_refund_amount = $bidAmount;
+                    $dispute->freelancer_amount = 0.00;
+                } elseif ($type === 'partial_refund') {
+                    $clientAmount = (float) $request->client_refund_amount;
+                    $freelancerAmount = (float) $request->freelancer_amount;
+
+                    if (round($clientAmount + $freelancerAmount, 2) > $bidAmount) {
+                        return response()->json(['error' => "Total split (\${$clientAmount} + \${$freelancerAmount}) exceeds bid (\${$bidAmount})."], 422);
+                    }
+
+                    $walletService->refundEscrow($proposal, $clientAmount, $freelancerAmount, $notes);
+                    $dispute->status = 'resolved_partial';
+                    $dispute->client_refund_amount = $clientAmount;
+                    $dispute->freelancer_amount = $freelancerAmount;
+                } elseif ($type === 'release_freelancer') {
+                    $walletService->releaseEscrow($proposal);
+                    $dispute->status = 'resolved_release_freelancer';
+                    $dispute->client_refund_amount = 0.00;
+                    $dispute->freelancer_amount = $bidAmount;
                 }
+            } elseif ($dispute->purchase) {
+                $purchase = $dispute->purchase;
+                $priceAmount = (float) $purchase->price;
 
-                $walletService->refundEscrow($proposal, $clientAmount, $freelancerAmount, $notes);
-                $dispute->status = 'resolved_partial';
-                $dispute->client_refund_amount = $clientAmount;
-                $dispute->freelancer_amount = $freelancerAmount;
-            } elseif ($type === 'release_freelancer') {
-                $walletService->releaseEscrow($proposal);
-                $dispute->status = 'resolved_release_freelancer';
-                $dispute->client_refund_amount = 0.00;
-                $dispute->freelancer_amount = $bidAmount;
+                if ($type === 'full_refund') {
+                    $walletService->refundEscrowForPurchase($purchase, $priceAmount, 0.0, $notes);
+                    $dispute->status =  'resolved_refund_client';
+                    $dispute->client_refund_amount = $priceAmount;
+                    $dispute->freelancer_amount = 0.00;
+                } elseif ($type === 'partial_refund') {
+                    $clientAmount = (float) $request->client_refund_amount;
+                    $freelancerAmount = (float) $request->freelancer_amount;
+
+                    if (round($clientAmount + $freelancerAmount, 2) > $priceAmount) {
+                        return response()->json(['error' => "Total split (\${$clientAmount} + \${$freelancerAmount}) exceeds service price (\${$priceAmount})."], 422);
+                    }
+
+                    $walletService->refundEscrowForPurchase($purchase, $clientAmount, $freelancerAmount, $notes);
+                    $dispute->status = 'resolved_partial';
+                    $dispute->client_refund_amount = $clientAmount;
+                    $dispute->freelancer_amount = $freelancerAmount;
+                } elseif ($type === 'release_freelancer') {
+                    $walletService->releaseEscrowForPurchase($purchase);
+                    $dispute->status = 'resolved_release_freelancer';
+                    $dispute->client_refund_amount = 0.00;
+                    $dispute->freelancer_amount = $priceAmount;
+                }
             }
 
             $dispute->admin_notes = $notes;

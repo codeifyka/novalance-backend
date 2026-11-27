@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proposal;
+use App\Models\Purchase;
 use App\Models\Dispute;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -71,6 +72,67 @@ class DisputeController extends Controller
     }
 
     /**
+     * Client raises a dispute for a service purchase after the ends_at date has arrived.
+     */
+    public function storeForPurchase(Request $request, $purchaseId): JsonResponse
+    {
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $request->validate([
+            'reason' => 'required|string|min:10',
+        ]);
+
+        $purchase = Purchase::with(['service'])->find($purchaseId);
+        if (!$purchase) {
+            return response()->json(['error' => 'Purchase not found.'], 404);
+        }
+
+        if ($purchase->client_id !== $user->id) {
+            return response()->json(['error' => 'Only the client who purchased this service can raise a dispute.'], 403);
+        }
+
+        if (!in_array($purchase->status, ['active', 'delivered'])) {
+            return response()->json(['error' => "Disputes can only be opened for active or delivered orders. Current status: {$purchase->status}."], 400);
+        }
+
+        // Check dispute timing rule: only allowed once ends_at date has arrived
+        if (!$purchase->ends_at || now()->lessThan($purchase->ends_at)) {
+            $formattedEndsAt = $purchase->ends_at ? $purchase->ends_at->format('Y-m-d H:i') : 'not set';
+            return response()->json([
+                'error' => "Disputes can only be raised once the delivery deadline has arrived ({$formattedEndsAt}).",
+                'code' => 'END_DATE_NOT_REACHED',
+                'ends_at' => $purchase->ends_at,
+            ], 422);
+        }
+
+        // Check if dispute already exists
+        $existingDispute = Dispute::where('purchase_id', $purchase->id)->first();
+        if ($existingDispute) {
+            return response()->json(['error' => 'A dispute has already been submitted for this order.', 'data' => $existingDispute], 400);
+        }
+
+        $dispute = Dispute::create([
+            'purchase_id' => $purchase->id,
+            'proposal_id' => null,
+            'client_id' => $user->id,
+            'freelancer_id' => $purchase->freelancer_id,
+            'reason' => $request->reason,
+            'status' => 'open',
+        ]);
+
+        $purchase->status = 'disputed';
+        $purchase->save();
+
+        return response()->json([
+            'message' => 'Dispute raised successfully. An administrator will review your case.',
+            'data' => $dispute->load(['purchase.service', 'client', 'freelancer']),
+        ], 201);
+    }
+
+    /**
      * Get disputes for the authenticated user (client or freelancer).
      */
     public function index(Request $request): JsonResponse
@@ -82,7 +144,7 @@ class DisputeController extends Controller
 
         $disputes = Dispute::where('client_id', $user->id)
             ->orWhere('freelancer_id', $user->id)
-            ->with(['proposal.job_post', 'client', 'freelancer', 'resolver'])
+            ->with(['proposal.job_post', 'purchase.service', 'client', 'freelancer', 'resolver'])
             ->latest()
             ->get();
 

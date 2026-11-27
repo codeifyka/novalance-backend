@@ -12,6 +12,7 @@ class Dispute extends Model
 
     protected $fillable = [
         'proposal_id',
+        'purchase_id',
         'client_id',
         'freelancer_id',
         'reason',
@@ -32,6 +33,11 @@ class Dispute extends Model
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function purchase(): BelongsTo
+    {
+        return $this->belongsTo(Purchase::class);
     }
 
     public function client(): BelongsTo

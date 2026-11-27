@@ -17,6 +17,7 @@ class Service extends Model
         'user_id',
         'category_id',
         'price_id',
+        'delivery_days',
         'images',
         'rate',
     ];

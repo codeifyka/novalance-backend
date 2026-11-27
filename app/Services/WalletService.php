@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\Proposal;
+use App\Models\Purchase;
 use App\Models\PayoutRequest;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -305,24 +306,243 @@ class WalletService
     }
 
     /**
+     * Lock funds from client's wallet into escrow for a specific service purchase.
+     */
+    public function lockEscrowForPurchase(User $client, Purchase $purchase): WalletTransaction
+    {
+        $amount = (float) $purchase->price;
+        if ($amount <= 0) {
+            throw new Exception("Service purchase price must be greater than zero.");
+        }
+
+        return DB::transaction(function () use ($client, $purchase, $amount) {
+            $wallet = Wallet::where('user_id', $client->id)->lockForUpdate()->first();
+            if (!$wallet) {
+                $wallet = $client->getOrCreateWallet();
+                $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
+            }
+
+            if ((float)$wallet->balance < $amount) {
+                $deficit = $amount - (float)$wallet->balance;
+                throw new Exception("Insufficient wallet balance. Required: \${$amount}, Available: \${$wallet->balance}. Deficit: \${$deficit}");
+            }
+
+            $wallet->balance = (float)$wallet->balance - $amount;
+            $wallet->save();
+
+            $serviceTitle = $purchase->service ? $purchase->service->title : "Service #{$purchase->service_id}";
+
+            return WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => 'escrow_lock',
+                'amount' => $amount,
+                'direction' => 'debit',
+                'source_type' => Purchase::class,
+                'source_id' => $purchase->id,
+                'status' => 'completed',
+                'description' => "Escrow locked for service: {$serviceTitle}",
+            ]);
+        });
+    }
+
+    /**
+     * Release escrowed funds to freelancer wallet upon service purchase completion (minus 10% admin platform fee).
+     */
+    public function releaseEscrowForPurchase(Purchase $purchase): WalletTransaction
+    {
+        $totalPrice = (float) $purchase->price;
+
+        return DB::transaction(function () use ($purchase, $totalPrice) {
+            $freelancer = $purchase->freelancer;
+            if (!$freelancer) {
+                throw new Exception("Freelancer not found for this service purchase.");
+            }
+
+            $fee = round($totalPrice * self::PLATFORM_FEE_PERCENTAGE, 2);
+            $freelancerEarnings = round($totalPrice - $fee, 2);
+
+            $wallet = Wallet::where('user_id', $freelancer->id)->lockForUpdate()->first();
+            if (!$wallet) {
+                $wallet = $freelancer->getOrCreateWallet();
+                $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
+            }
+
+            $wallet->balance = (float)$wallet->balance + $freelancerEarnings;
+            $wallet->save();
+
+            $purchase->status = 'completed';
+            $purchase->completed_at = now();
+            $purchase->save();
+
+            $serviceTitle = $purchase->service ? $purchase->service->title : "Service #{$purchase->service_id}";
+
+            // 1. Transaction for Freelancer
+            $freelancerTx = WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => 'escrow_release',
+                'amount' => $freelancerEarnings,
+                'direction' => 'credit',
+                'source_type' => Purchase::class,
+                'source_id' => $purchase->id,
+                'status' => 'completed',
+                'description' => "Earnings released for service: {$serviceTitle} (after 10% fee of \${$fee})",
+            ]);
+
+            // 2. Transaction for Admin Platform Fee
+            if ($fee > 0) {
+                $admin = User::where('account_type', 'admin')->first();
+                if ($admin) {
+                    $adminWallet = Wallet::where('user_id', $admin->id)->lockForUpdate()->first() ?: $admin->getOrCreateWallet();
+                    $adminWallet->balance = (float)$adminWallet->balance + $fee;
+                    $adminWallet->save();
+
+                    WalletTransaction::create([
+                        'wallet_id' => $adminWallet->id,
+                        'type' => 'platform_fee',
+                        'amount' => $fee,
+                        'direction' => 'credit',
+                        'source_type' => Purchase::class,
+                        'source_id' => $purchase->id,
+                        'status' => 'completed',
+                        'description' => "10% Platform fee collected for service: {$serviceTitle}",
+                    ]);
+                }
+            }
+
+            return $freelancerTx;
+        });
+    }
+
+    /**
+     * Refund escrow funds for purchase in full or partially (used during dispute resolution).
+     */
+    public function refundEscrowForPurchase(
+        Purchase $purchase,
+        float $clientRefundAmount,
+        float $freelancerAmount = 0.0,
+        ?string $reason = null
+    ): array {
+        $totalRequested = round($clientRefundAmount + $freelancerAmount, 2);
+        $purchasePrice = (float) $purchase->price;
+
+        if ($totalRequested > $purchasePrice) {
+            throw new Exception("Total resolution amount (\${$totalRequested}) exceeds service price (\${$purchasePrice}).");
+        }
+
+        return DB::transaction(function () use ($purchase, $clientRefundAmount, $freelancerAmount, $purchasePrice, $reason) {
+            $transactions = [];
+            $serviceTitle = $purchase->service ? $purchase->service->title : "Service #{$purchase->service_id}";
+
+            // 1. Credit Client if refund amount > 0
+            if ($clientRefundAmount > 0) {
+                $client = $purchase->client;
+                if ($client) {
+                    $clientWallet = Wallet::where('user_id', $client->id)->lockForUpdate()->first() ?: $client->getOrCreateWallet();
+                    $clientWallet->balance = (float)$clientWallet->balance + $clientRefundAmount;
+                    $clientWallet->save();
+
+                    $transactions[] = WalletTransaction::create([
+                        'wallet_id' => $clientWallet->id,
+                        'type' => 'escrow_refund',
+                        'amount' => $clientRefundAmount,
+                        'direction' => 'credit',
+                        'source_type' => Purchase::class,
+                        'source_id' => $purchase->id,
+                        'status' => 'completed',
+                        'description' => "Refund for service: {$serviceTitle}" . ($reason ? " ({$reason})" : ""),
+                    ]);
+                }
+            }
+
+            // 2. Credit Freelancer if partial amount > 0
+            if ($freelancerAmount > 0) {
+                $freelancer = $purchase->freelancer;
+                if ($freelancer) {
+                    $fee = round($freelancerAmount * self::PLATFORM_FEE_PERCENTAGE, 2);
+                    $netFreelancer = round($freelancerAmount - $fee, 2);
+
+                    $freelancerWallet = Wallet::where('user_id', $freelancer->id)->lockForUpdate()->first() ?: $freelancer->getOrCreateWallet();
+                    $freelancerWallet->balance = (float)$freelancerWallet->balance + $netFreelancer;
+                    $freelancerWallet->save();
+
+                    $transactions[] = WalletTransaction::create([
+                        'wallet_id' => $freelancerWallet->id,
+                        'type' => 'escrow_release',
+                        'amount' => $netFreelancer,
+                        'direction' => 'credit',
+                        'source_type' => Purchase::class,
+                        'source_id' => $purchase->id,
+                        'status' => 'completed',
+                        'description' => "Partial payment for service: {$serviceTitle} (after 10% fee of \${$fee})",
+                    ]);
+
+                    if ($fee > 0) {
+                        $admin = User::where('account_type', 'admin')->first();
+                        if ($admin) {
+                            $adminWallet = Wallet::where('user_id', $admin->id)->lockForUpdate()->first() ?: $admin->getOrCreateWallet();
+                            $adminWallet->balance = (float)$adminWallet->balance + $fee;
+                            $adminWallet->save();
+
+                            $transactions[] = WalletTransaction::create([
+                                'wallet_id' => $adminWallet->id,
+                                'type' => 'platform_fee',
+                                'amount' => $fee,
+                                'direction' => 'credit',
+                                'source_type' => Purchase::class,
+                                'source_id' => $purchase->id,
+                                'status' => 'completed',
+                                'description' => "10% Platform fee collected for service: {$serviceTitle}",
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // 3. Update purchase status
+            if ($clientRefundAmount >= $purchasePrice) {
+                $purchase->status = 'refunded';
+            } else {
+                $purchase->status = 'completed';
+            }
+            $purchase->save();
+
+            return $transactions;
+        });
+    }
+
+    /**
      * Get user's wallet summary including available balance, computed escrow balance, and transactions.
      */
     public function getWalletSummary(User $user): array
     {
         $wallet = $user->getOrCreateWallet();
 
-        // Compute escrow balance
+        // Compute escrow balance across both proposals and purchases
         $escrowBalance = 0.0;
         if ($user->account_type === 'client') {
-            // Active proposals funded by this client
-            $escrowBalance = (float) Proposal::whereHas('job_post', function ($q) use ($user) {
+            // Active proposals and purchases funded by this client
+            $proposalEscrow = (float) Proposal::whereHas('job_post', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->whereIn('status', ['active', 'disputed'])->sum('bid');
+
+            $purchaseEscrow = (float) Purchase::where('client_id', $user->id)
+                ->whereIn('status', ['active', 'delivered', 'disputed'])
+                ->pluck('price')
+                ->sum(fn ($p) => (float) $p);
+
+            $escrowBalance = $proposalEscrow + $purchaseEscrow;
         } elseif ($user->account_type === 'freelancer') {
-            // Active proposals assigned to this freelancer
-            $escrowBalance = (float) Proposal::where('freelancer_id', $user->id)
+            // Active proposals and purchases assigned to this freelancer
+            $proposalEscrow = (float) Proposal::where('freelancer_id', $user->id)
                 ->whereIn('status', ['active', 'disputed'])
                 ->sum('bid');
+
+            $purchaseEscrow = (float) Purchase::where('freelancer_id', $user->id)
+                ->whereIn('status', ['active', 'delivered', 'disputed'])
+                ->pluck('price')
+                ->sum(fn ($p) => (float) $p);
+
+            $escrowBalance = $proposalEscrow + $purchaseEscrow;
         }
 
         return [
