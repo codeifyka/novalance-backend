@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ProjectSeeder extends Seeder
@@ -17,7 +16,7 @@ class ProjectSeeder extends Seeder
         $freelancers = User::where('account_type', 'freelancer')->get();
 
         foreach ($freelancers as $freelancer) {
-            Project::factory()->count(5)->create([
+            Project::factory()->count(2)->create([
                 'user_id' => $freelancer->id,
             ]);
         }

@@ -12,6 +12,19 @@ class CategoriesTableSeeder extends Seeder
      */
     public function run(): void
     {
-        Category::factory()->count(5)->create();
+        $categories = [
+            'Web Development',
+            'Mobile App Development',
+            'UI/UX Design',
+            'Graphic Design',
+            'Content Writing',
+            'Digital Marketing',
+            'Video & Animation',
+            'Data & AI',
+        ];
+
+        foreach ($categories as $name) {
+            Category::firstOrCreate(['name' => $name]);
+        }
     }
 }

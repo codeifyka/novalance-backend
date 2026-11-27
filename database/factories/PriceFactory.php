@@ -6,23 +6,18 @@ use App\Models\Price;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Price>
  */
 class PriceFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     protected $model = Price::class;
 
     public function definition(): array
     {
         return [
-            'value' => random_int(0, 9999),
-            'currency_code' => fake()->currencyCode(),
-            'currency_symbol' => fake()->currencyCode(),
+            'value' => $this->faker->randomElement([50, 75, 100, 150, 200, 250, 350, 500, 750, 1000, 1200]),
+            'currency_code' => 'USD',
+            'currency_symbol' => '$',
         ];
     }
 }
