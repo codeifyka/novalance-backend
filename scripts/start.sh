@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Navigate to the websocket-server directory
 cd websocket-server
 
@@ -17,6 +16,9 @@ php artisan storage:link
 
 echo "# Start the PHP application in the background"
 php artisan serve --host=0.0.0.0 --port=8000 &
+
+echo "# Start Laravel Reverb WebSocket server in the background"
+php artisan reverb:start --host=0.0.0.0 --port=8080 &
 
 # Navigate to the websocket-server directory
 cd websocket-server
