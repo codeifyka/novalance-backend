@@ -182,6 +182,7 @@ Route::group(
     ],
     function () {
         Route::get('/', [WalletController::class, 'getMyWallet']);
+        Route::get('/config', [WalletController::class, 'getConfig']);
         Route::post('/deposit/intent', [WalletController::class, 'depositIntent']);
         Route::post('/deposit/confirm', [WalletController::class, 'confirmDeposit']);
         Route::post('/payout-request', [WalletController::class, 'requestPayout']);

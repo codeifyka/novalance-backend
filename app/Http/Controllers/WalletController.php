@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\WalletTransaction;
 use App\Services\WalletService;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Http\Request;
@@ -16,6 +17,22 @@ class WalletController extends Controller
     {
         $this->walletService = $walletService;
         $this->gatewayManager = $gatewayManager;
+    }
+
+    public function getConfig(): JsonResponse
+    {
+        $driver = $this->gatewayManager->driver('stripe');
+        $isConfigured = method_exists($driver, 'isConfigured') ? $driver->isConfigured() : false;
+        $publishableKey = method_exists($driver, 'getPublishableKey') ? $driver->getPublishableKey() : null;
+
+        return response()->json([
+            'data' => [
+                'provider' => 'stripe',
+                'stripe_configured' => $isConfigured,
+                'publishable_key' => $publishableKey,
+                'mode' => $isConfigured ? 'stripe' : 'test_simulation',
+            ],
+        ], 200);
     }
 
     /**
@@ -83,6 +100,16 @@ class WalletController extends Controller
         $amount = (float) $request->amount;
 
         try {
+            // Idempotency guard: prevent confirming the same PaymentIntent more than once
+            $alreadyProcessed = WalletTransaction::where('type', 'deposit')
+                ->where('status', 'completed')
+                ->where('provider_data->stripe_payment_intent_id', $request->payment_id)
+                ->exists();
+
+            if ($alreadyProcessed) {
+                return response()->json(['error' => 'This payment has already been credited to your wallet.'], 409);
+            }
+
             $driver = $this->gatewayManager->driver($provider);
             $verification = $driver->confirmDeposit($request->payment_id);
 

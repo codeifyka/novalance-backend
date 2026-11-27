@@ -19,11 +19,24 @@ class StripeGatewayService implements PaymentGatewayInterface
         $this->secretKey = config('services.stripe.secret', '');
         $this->publishableKey = config('services.stripe.key', '');
         
-        $this->isConfigured = !empty($this->secretKey) && !str_starts_with($this->secretKey, 'sk_test_placeholder');
+        $this->isConfigured = !empty($this->secretKey)
+            && !str_starts_with($this->secretKey, 'sk_test_placeholder')
+            && !empty($this->publishableKey)
+            && !str_starts_with($this->publishableKey, 'pk_test_placeholder');
 
         if ($this->isConfigured) {
             Stripe::setApiKey($this->secretKey);
         }
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->isConfigured;
+    }
+
+    public function getPublishableKey(): ?string
+    {
+        return $this->isConfigured ? $this->publishableKey : null;
     }
 
     public function getProviderName(): string
@@ -52,6 +65,8 @@ class StripeGatewayService implements PaymentGatewayInterface
                 return [
                     'payment_id' => $intent->id,
                     'client_secret' => $intent->client_secret,
+                    'publishable_key' => $this->publishableKey,
+                    'mode' => 'stripe',
                     'amount' => $amount,
                     'currency' => 'usd',
                     'status' => $intent->status,
@@ -74,6 +89,8 @@ class StripeGatewayService implements PaymentGatewayInterface
         return [
             'payment_id' => $simulatedId,
             'client_secret' => $clientSecret,
+            'publishable_key' => null,
+            'mode' => 'test_simulation',
             'amount' => $amount,
             'currency' => 'usd',
             'status' => 'requires_payment_method',
