@@ -67,6 +67,7 @@ Route::group([
     Route::put('{id}',[ServicesController::class, 'update']);
     Route::post('{id}',[ServicesController::class, 'update']);
     Route::delete('{id}',[ServicesController::class, 'destroy']);
+    Route::post('{id}/rate',[ServicesController::class, 'rate']);
     Route::get('search/{title}',[ServicesController::class, 'searchByTitle']);
 });
 

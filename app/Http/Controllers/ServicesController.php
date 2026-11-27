@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Price;
+use App\Models\Purchase;
 use App\Models\Service;
+use App\Models\ServiceRating;
 use App\Models\Category;
 use App\Models\ServiceImage;
 use Illuminate\Http\Request;
@@ -14,13 +16,13 @@ class ServicesController extends Controller
     public function getSelfAll(Request $request)
     {
         return response()->json([
-            "data" => Service::with(['price','category','images'])->where('user_id','=',auth('api')->user()->id)->get(),
+            "data" => Service::with(['price','category','images'])->withCount('ratings')->where('user_id','=',auth('api')->user()->id)->get(),
         ]);
     }
 
     public function getById(Request $request)
     {
-        $services = Service::with(['price','category','images'])->where('id','=', $request->id)->get();
+        $services = Service::with(['price','category','images'])->withCount('ratings')->where('id','=', $request->id)->get();
         if(count($services) == 0){
             return response()->json([
                 "data" => null,
@@ -44,7 +46,7 @@ class ServicesController extends Controller
             ]);
         }
 
-        $services = Service::with(['price','category','images'])->where('user_id','=', $users[0]->id)->get();
+        $services = Service::with(['price','category','images'])->withCount('ratings')->where('user_id','=', $users[0]->id)->get();
         return response()->json([
             "data" => $services,
         ]);
@@ -52,7 +54,7 @@ class ServicesController extends Controller
 
     public function getAll2(Request $request)
     {
-        $query = Service::with(['price', 'category', 'images']);
+        $query = Service::with(['price', 'category', 'images'])->withCount('ratings');
 
         if ($request->filled('category_id')) {
             $query->where('services.category_id', $request->input('category_id'));
@@ -134,7 +136,7 @@ class ServicesController extends Controller
     }
 
     function searchByTitle(Request $request){
-        $services = Service::with(['price','category','images'])->where('title','=', $request['title'])->get();
+        $services = Service::with(['price','category','images'])->withCount('ratings')->where('title','=', $request['title'])->get();
         if(count($services) == 0){
             return response()->json([
                 "data" => null,
@@ -260,6 +262,58 @@ class ServicesController extends Controller
 
         return response()->json([
             'message' => 'Service deleted successfully'
+        ], 200);
+    }
+
+    public function rate(Request $request, $id)
+    {
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $validated = $request->validate([
+            'rate' => 'required|integer|min:1|max:5',
+        ]);
+
+        $service = Service::find($id);
+        if (!$service) {
+            return response()->json(['error' => 'Service not found'], 404);
+        }
+
+        $hasEligiblePurchase = Purchase::where('client_id', $user->id)
+            ->where('service_id', $service->id)
+            ->whereIn('status', ['delivered', 'completed'])
+            ->exists();
+
+        if (!$hasEligiblePurchase) {
+            return response()->json([
+                'error' => 'You can only rate a service after having at least one delivered or completed purchase.'
+            ], 403);
+        }
+
+        ServiceRating::updateOrCreate(
+            [
+                'service_id' => $service->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'rating' => $validated['rate'],
+            ]
+        );
+
+        $averageRate = (int) round(ServiceRating::where('service_id', $service->id)->avg('rating'));
+        $ratingsCount = ServiceRating::where('service_id', $service->id)->count();
+        $service->rate = $averageRate;
+        $service->save();
+
+        return response()->json([
+            'message' => 'Service rated successfully.',
+            'data' => [
+                'rate' => $service->rate,
+                'ratings_count' => $ratingsCount,
+                'user_rating' => (int) $validated['rate'],
+            ],
         ], 200);
     }
 }

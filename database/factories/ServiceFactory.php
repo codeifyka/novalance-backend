@@ -28,7 +28,7 @@ class ServiceFactory extends Factory
             'description' => fake()->text(255),
             'category_id' => Category::all()->random()->id,
             'price_id' => Price::factory(),
-            'rate' => random_int(1,5),
+            'rate' => 0,
         ];
     }
 }
