@@ -121,14 +121,15 @@ class PurchaseController extends Controller
         }
 
         // Find or create chat between client and freelancer for seamless communication
-        $chat = Chat::where(function ($q) use ($service) {
-            $q->where('chattable_type', \App\Models\Service::class)
-              ->where('chattable_id', $service->id);
-        })->orWhere(function ($q) use ($user, $service) {
-            $q->where('client_id', $user->id)
-              ->where('freelancer_id', $service->user_id)
-              ->where('service_id', $service->id);
-        })->first();
+        $chat = Chat::where('client_id', $user->id)
+            ->where('freelancer_id', $service->user_id)
+            ->where(function ($q) use ($service) {
+                $q->where(function ($sub) use ($service) {
+                    $sub->where('chattable_type', \App\Models\Service::class)
+                        ->where('chattable_id', $service->id);
+                })->orWhere('service_id', $service->id);
+            })
+            ->first();
 
         if (!$chat) {
             $chat = Chat::create([
