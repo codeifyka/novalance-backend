@@ -32,6 +32,9 @@ class User extends Authenticatable implements JWTSubject
         'gender',
         'country',
         'profile_picture',
+        'notify_proposals',
+        'notify_purchases',
+        'availability_status',
     ];
 
     /**
@@ -52,6 +55,8 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'notify_proposals' => 'boolean',
+        'notify_purchases' => 'boolean',
     ];
 
     public function setPasswordAttribute($password)

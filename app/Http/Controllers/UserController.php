@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\JobPost;
+use App\Models\Proposal;
+use App\Models\Purchase;
+use App\Models\PayoutRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +28,9 @@ class UserController extends Controller
                     "gender" => auth('api')->user()->gender,
                     "telephone" => auth('api')->user()->telephone,
                     "profile_picture" => auth('api')->user()->profile_picture,
+                    "notify_proposals" => (bool) (auth('api')->user()->notify_proposals ?? true),
+                    "notify_purchases" => (bool) (auth('api')->user()->notify_purchases ?? true),
+                    "availability_status" => auth('api')->user()->availability_status ?? 'available',
                 ],
                 "services" => auth('api')->user()->services->count(),
                 "projects" => auth('api')->user()->projects->count(),
@@ -68,6 +74,11 @@ class UserController extends Controller
             }
         }
 
+        $availability = $currentUser->availability_status ?? 'available';
+        if ($request->has('availability_status') && in_array($request['availability_status'], ['available', 'busy', 'unavailable'], true)) {
+            $availability = $request['availability_status'];
+        }
+
         User::query()->where('id', '=', $currentUser->id)->update([
             'username' => $request['username'] ?? $currentUser->username,
             'first_name' => $request['first_name'] ?? $currentUser->first_name,
@@ -77,6 +88,9 @@ class UserController extends Controller
             'telephone' => $request['telephone'] ?? $currentUser->telephone,
             'country' => $request['country'] ?? $currentUser->country,
             'profile_picture' => $request['profile_picture'] ?? $currentUser->profile_picture,
+            'notify_proposals' => $request->has('notify_proposals') ? (bool) $request->boolean('notify_proposals') : ($currentUser->notify_proposals ?? true),
+            'notify_purchases' => $request->has('notify_purchases') ? (bool) $request->boolean('notify_purchases') : ($currentUser->notify_purchases ?? true),
+            'availability_status' => $availability,
         ]);
 
         $updatedUser = User::find($currentUser->id);
@@ -219,5 +233,81 @@ class UserController extends Controller
                 "message" => "User not found"
             ], 404);
         }
+    }
+
+    /**
+     * Permanently delete the authenticated user's account after safety checks.
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = auth('api')->user() ?: $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        if (!Hash::check($request->input('password'), $user->password)) {
+            return response()->json(['error' => 'Incorrect password.'], 422);
+        }
+
+        // Safety Check 1: Active or disputed proposals
+        $hasActiveProposals = Proposal::whereIn('status', ['active', 'disputed'])
+            ->where(function ($q) use ($user) {
+                $q->where('freelancer_id', $user->id)
+                  ->orWhereHas('job_post', function ($jq) use ($user) {
+                      $jq->where('user_id', $user->id);
+                  });
+            })
+            ->exists();
+
+        if ($hasActiveProposals) {
+            return response()->json([
+                'error' => 'Cannot delete account while you have active or disputed job proposals.'
+            ], 400);
+        }
+
+        // Safety Check 2: Active, delivered, or disputed service purchases
+        $hasActivePurchases = Purchase::whereIn('status', ['active', 'delivered', 'disputed'])
+            ->where(function ($q) use ($user) {
+                $q->where('client_id', $user->id)
+                  ->orWhere('freelancer_id', $user->id);
+            })
+            ->exists();
+
+        if ($hasActivePurchases) {
+            return response()->json([
+                'error' => 'Cannot delete account while you have active, delivered, or disputed service orders.'
+            ], 400);
+        }
+
+        // Safety Check 3: Pending payout requests
+        $hasPendingPayouts = PayoutRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($hasPendingPayouts) {
+            return response()->json([
+                'error' => 'Cannot delete account while you have pending payout requests.'
+            ], 400);
+        }
+
+        // Safety Check 4: Remaining wallet balance
+        $wallet = $user->wallet;
+        if ($wallet && (float) $wallet->balance > 0) {
+            return response()->json([
+                'error' => 'Please withdraw or spend your remaining wallet balance ($' . number_format((float) $wallet->balance, 2) . ') before deleting your account.'
+            ], 400);
+        }
+
+        // Revoke Sanctum tokens and delete user
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Your account has been permanently deleted.'
+        ], 200);
     }
 }

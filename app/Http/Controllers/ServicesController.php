@@ -22,7 +22,7 @@ class ServicesController extends Controller
 
     public function getById(Request $request)
     {
-        $services = Service::with(['price','category','images'])->withCount('ratings')->where('id','=', $request->id)->get();
+        $services = Service::with(['price','category','images','user:id,username,first_name,last_name,profile_picture,availability_status'])->withCount('ratings')->where('id','=', $request->id)->get();
         if(count($services) == 0){
             return response()->json([
                 "data" => null,
@@ -46,7 +46,7 @@ class ServicesController extends Controller
             ]);
         }
 
-        $services = Service::with(['price','category','images'])->withCount('ratings')->where('user_id','=', $users[0]->id)->get();
+        $services = Service::with(['price','category','images','user:id,username,first_name,last_name,profile_picture,availability_status'])->withCount('ratings')->where('user_id','=', $users[0]->id)->get();
         return response()->json([
             "data" => $services,
         ]);
@@ -54,7 +54,7 @@ class ServicesController extends Controller
 
     public function getAll2(Request $request)
     {
-        $query = Service::with(['price', 'category', 'images'])->withCount('ratings');
+        $query = Service::with(['price', 'category', 'images', 'user:id,username,first_name,last_name,profile_picture,availability_status'])->withCount('ratings');
 
         if ($request->filled('category_id')) {
             $query->where('services.category_id', $request->input('category_id'));
@@ -136,7 +136,7 @@ class ServicesController extends Controller
     }
 
     function searchByTitle(Request $request){
-        $services = Service::with(['price','category','images'])->withCount('ratings')->where('title','=', $request['title'])->get();
+        $services = Service::with(['price','category','images','user:id,username,first_name,last_name,profile_picture,availability_status'])->withCount('ratings')->where('title','=', $request['title'])->get();
         if(count($services) == 0){
             return response()->json([
                 "data" => null,

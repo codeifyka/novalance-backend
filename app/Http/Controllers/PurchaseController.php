@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
+use App\Models\PlatformSetting;
 use App\Models\Purchase;
 use App\Models\Service;
 use App\Models\Wallet;
@@ -60,22 +61,29 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'You cannot purchase your own service.'], 400);
         }
 
+        if ($service->user && $service->user->availability_status === 'unavailable') {
+            return response()->json(['error' => 'This freelancer is currently unavailable for new service orders.'], 400);
+        }
+
+        $freeServiceEnabled = PlatformSetting::getValue('free_service_enabled', '0') === '1';
         $price = $service->price ? (float)$service->price->value : 0.0;
-        if ($price <= 0) {
+        if ($price < 0 || ($price == 0 && !$freeServiceEnabled)) {
             return response()->json(['error' => 'This service does not have a valid price.'], 400);
         }
 
-        // Verify client wallet balance
-        $wallet = $user->getOrCreateWallet();
-        if ((float)$wallet->balance < $price) {
-            $deficit = round($price - (float)$wallet->balance, 2);
-            return response()->json([
-                'error' => "Insufficient wallet balance. Required: \${$price}, Available: \${$wallet->balance}. Deficit: \${$deficit}",
-                'code' => 'INSUFFICIENT_BALANCE',
-                'required' => $price,
-                'available' => (float)$wallet->balance,
-                'deficit' => $deficit,
-            ], 400);
+        // Verify client wallet balance (skip when service is free)
+        if ($price > 0) {
+            $wallet = $user->getOrCreateWallet();
+            if ((float)$wallet->balance < $price) {
+                $deficit = round($price - (float)$wallet->balance, 2);
+                return response()->json([
+                    'error' => "Insufficient wallet balance. Required: \${$price}, Available: \${$wallet->balance}. Deficit: \${$deficit}",
+                    'code' => 'INSUFFICIENT_BALANCE',
+                    'required' => $price,
+                    'available' => (float)$wallet->balance,
+                    'deficit' => $deficit,
+                ], 400);
+            }
         }
 
         // Calculate delivery deadline
@@ -102,8 +110,10 @@ class PurchaseController extends Controller
                     'ends_at' => $endsAt,
                 ]);
 
-                // 2. Lock escrow in double-entry ledger
-                $walletService->lockEscrowForPurchase($user, $purchase);
+                // 2. Lock escrow in double-entry ledger (skip when free $0 service)
+                if ($price > 0) {
+                    $walletService->lockEscrowForPurchase($user, $purchase);
+                }
 
                 return $purchase;
             });
@@ -111,8 +121,8 @@ class PurchaseController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
 
-        // Notify freelancer that their service was purchased
-        if ($service->user) {
+        // Notify freelancer that their service was purchased (if enabled)
+        if ($service->user && ($service->user->notify_purchases ?? true)) {
             try {
                 $service->user->notify(new ServicePurchasedNotification($purchase, $service, $user));
             } catch (\Throwable $e) {

@@ -18,6 +18,7 @@ use App\Http\Controllers\WalletController;
 use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\Admin\AdminDisputeController;
 use App\Http\Controllers\Admin\AdminPayoutController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,6 +47,7 @@ Route::group([
 ], function () {
     Route::get('/',[UserController::class, 'getInfo']);
     Route::post('/',[UserController::class, 'updateInfo']);
+    Route::delete('/',[UserController::class, 'deleteAccount']);
     Route::post('/change-password', [UserController::class, 'changePassword']);
     Route::post('/profile_picture', [UserController::class, 'uploadProfilePicture']);
     Route::get('/services',[ServicesController::class, 'getSelfAll']);
@@ -212,6 +214,9 @@ Route::group(
         Route::get('/payouts', [AdminPayoutController::class, 'index']);
         Route::post('/payouts/{id}/process', [AdminPayoutController::class, 'process']);
         Route::post('/payouts/{id}/reject', [AdminPayoutController::class, 'reject']);
+
+        Route::get('/settings', [AdminSettingsController::class, 'index']);
+        Route::put('/settings', [AdminSettingsController::class, 'update']);
     }
 );
 

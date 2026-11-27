@@ -40,7 +40,7 @@ class ProposalController extends Controller
 
             // Notify job owner of updated proposal
             $jobPost = JobPost::with('user')->find($validated['job_post_id']);
-            if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id) {
+            if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id && ($jobPost->user->notify_proposals ?? true)) {
                 try {
                     $jobPost->user->notify(new NewProposalNotification($existing, $jobPost, $user));
                 } catch (\Throwable $e) {
@@ -55,7 +55,7 @@ class ProposalController extends Controller
 
         // Notify job owner of new proposal
         $jobPost = JobPost::with('user')->find($validated['job_post_id']);
-        if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id) {
+        if ($jobPost && $jobPost->user && $jobPost->user->id !== $user->id && ($jobPost->user->notify_proposals ?? true)) {
             try {
                 $jobPost->user->notify(new NewProposalNotification($proposal, $jobPost, $user));
             } catch (\Throwable $e) {

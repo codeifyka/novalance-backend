@@ -8,6 +8,7 @@ use App\Models\WalletTransaction;
 use App\Models\Proposal;
 use App\Models\Purchase;
 use App\Models\PayoutRequest;
+use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -358,7 +359,12 @@ class WalletService
                 throw new Exception("Freelancer not found for this service purchase.");
             }
 
-            $fee = round($totalPrice * self::PLATFORM_FEE_PERCENTAGE, 2);
+            $freeServiceEnabled = PlatformSetting::getValue('free_service_enabled', '0') === '1';
+            $feePct = $freeServiceEnabled
+                ? 0.0
+                : ((float) PlatformSetting::getValue('service_fee_percentage', '10')) / 100.0;
+
+            $fee = round($totalPrice * $feePct, 2);
             $freelancerEarnings = round($totalPrice - $fee, 2);
 
             $wallet = Wallet::where('user_id', $freelancer->id)->lockForUpdate()->first();
@@ -376,6 +382,7 @@ class WalletService
 
             $serviceTitle = $purchase->service ? $purchase->service->title : "Service #{$purchase->service_id}";
 
+            $feePercentLabel = round($feePct * 100, 2);
             // 1. Transaction for Freelancer
             $freelancerTx = WalletTransaction::create([
                 'wallet_id' => $wallet->id,
@@ -385,7 +392,9 @@ class WalletService
                 'source_type' => Purchase::class,
                 'source_id' => $purchase->id,
                 'status' => 'completed',
-                'description' => "Earnings released for service: {$serviceTitle} (after 10% fee of \${$fee})",
+                'description' => $fee > 0
+                    ? "Earnings released for service: {$serviceTitle} (after {$feePercentLabel}% fee of \${$fee})"
+                    : "Earnings released for service: {$serviceTitle} (Free Service · 0% fee)",
             ]);
 
             // 2. Transaction for Admin Platform Fee
@@ -404,7 +413,7 @@ class WalletService
                         'source_type' => Purchase::class,
                         'source_id' => $purchase->id,
                         'status' => 'completed',
-                        'description' => "10% Platform fee collected for service: {$serviceTitle}",
+                        'description' => "{$feePercentLabel}% Platform fee collected for service: {$serviceTitle}",
                     ]);
                 }
             }
